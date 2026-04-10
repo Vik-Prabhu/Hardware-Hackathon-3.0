@@ -1,0 +1,52 @@
+export default {
+  base: '/',  // Use '/' for Vercel, '/repo-name/' for GitHub Pages
+  title: 'Team Robomanipal',
+  description: 'Hardware Hackathon 3.0 Documentation',
+  themeConfig: {
+    nav: [
+      { text: 'Home', link: '/' },
+      { text: 'Hardware', link: '/hardware/mechanical' },
+      { text: 'Software', link: '/software/setup' },
+      { text: 'Research', link: '/research/market-research' }
+    ],
+    sidebar: [
+      {
+        text: 'Introduction',
+        items: [
+          { text: 'Overview', link: '/introduction/overview' },
+          { text: 'Team background', link: '/introduction/team' }
+        ]
+      },
+      {
+        text: 'Hardware Architecture',
+        items: [
+          { text: 'Mechanical Design', link: '/hardware/mechanical' },
+          { text: 'Electronics & Schematics', link: '/hardware/electronics' },
+          { text: 'Bill of Materials', link: '/hardware/bom' }
+        ]
+      },
+      {
+        text: 'Software & Firmware',
+        items: [
+          { text: 'Setup & Installation', link: '/software/setup' },
+          { text: 'Code Structure', link: '/software/code' },
+          { text: 'Communication Protocols', link: '/software/protocols' }
+        ]
+      },
+      {
+        text: 'Market Research & Case Study',
+        items: [
+          { text: 'Market Research', link: '/research/market-research' },
+          { text: 'Case Study', link: '/research/case-study' }
+        ]
+      },
+      {
+        text: 'Testing & Results',
+        items: [
+          { text: 'Methodology', link: '/results/methodology' },
+          { text: 'Discussion', link: '/results/discussion' }
+        ]
+      }
+    ]
+  }
+}
