@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Node — Plant Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f0a;
+    --bg2: #0e150e;
+    --bg3: #111811;
+    --card: #141c14;
+    --border: #1e2e1e;
+    --green1: #4ade80;
+    --green2: #22c55e;
+    --green3: #16a34a;
+    --teal: #2dd4bf;
+    --lime: #a3e635;
+    --text: #e8f5e8;
+    --muted: #7a9a7a;
+    --dim: #3a533a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* ─── HIGHLIGHT TEXT ─── */
+  .highlight {
+    background: linear-gradient(135deg, var(--green1) 0%, var(--teal) 50%, var(--lime) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .highlight-warm {
+    background: linear-gradient(135deg, var(--lime) 0%, var(--green1) 60%, var(--teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: rgba(10, 15, 10, 0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-links a:hover, .nav-links a.active { color: var(--green1); }
+
+  .nav-cta {
+    background: var(--green3);
+    color: white !important;
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600 !important;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--green2) !important; color: white !important; }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 8rem 3rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(74,222,128,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-glow2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(45,212,191,0.06) 0%, transparent 70%);
+    top: 20%; right: 10%;
+    pointer-events: none;
+  }
+
+  .hero-content { max-width: 780px; position: relative; z-index: 1; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    color: var(--green1);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green1);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 560px;
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--green2), var(--teal));
+    color: #0a0f0a;
+    padding: 0.85rem 2rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(74,222,128,0.3);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    padding: 0.85rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--green1);
+    background: rgba(74,222,128,0.05);
+  }
+
+  /* ─── STATS ROW ─── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 5rem 3rem;
+    overflow: hidden;
+  }
+
+  .stat-card {
+    background: var(--card);
+    padding: 2rem 2.5rem;
+    position: relative;
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(74,222,128,0.03), transparent);
+    pointer-events: none;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .stat-label {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  /* ─── SECTION ─── */
+  section { padding: 5rem 3rem; position: relative; }
+
+  .section-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green1);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-tag::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: var(--green1);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  .section-sub {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 520px;
+    font-weight: 300;
+  }
+
+  /* ─── PROBLEM SECTION ─── */
+  .problem-section {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-top: 3rem;
+    align-items: start;
+  }
+
+  .problem-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .problem-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.2rem 1.4rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .problem-item:hover {
+    border-color: rgba(74,222,128,0.3);
+    transform: translateX(4px);
+  }
+
+  .problem-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .problem-text { font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
+  .problem-text strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 0.2rem; }
+
+  .problem-callout {
+    background: linear-gradient(135deg, rgba(74,222,128,0.05), rgba(45,212,191,0.05));
+    border: 1px solid rgba(74,222,128,0.15);
+    border-radius: 16px;
+    padding: 2.5rem;
+    position: sticky;
+    top: 6rem;
+  }
+
+  .callout-quote {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 1.5rem;
+  }
+
+  .callout-detail {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  /* ─── SENSORS / FEATURES ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.8rem;
+    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--green2), var(--teal));
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(74,222,128,0.25);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  }
+
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  .feature-desc {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ─── CAPABILITIES ─── */
+  .capabilities-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .cap-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    padding: 3rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cap-item:last-child { border-bottom: none; }
+  .cap-item.reverse { direction: rtl; }
+  .cap-item.reverse > * { direction: ltr; }
+
+  .cap-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--dim);
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+
+  .cap-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.8rem;
+  }
+
+  .cap-desc {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+  }
+
+  .cap-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.15);
+    border-radius: 100px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    color: var(--green1);
+    font-weight: 500;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .cap-visual {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    min-height: 200px;
+    justify-content: center;
+  }
+
+  .cap-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .cap-bar-label { width: 80px; flex-shrink: 0; }
+
+  .cap-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .cap-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--green2), var(--teal));
+    animation: barGrow 1.2s ease both;
+  }
+
+  @keyframes barGrow {
+    from { width: 0 !important; }
+  }
+
+  .cap-bar-val { width: 30px; text-align: right; color: var(--green1); font-weight: 600; }
+
+  /* Route map visual */
+  .route-visual {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .route-stop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    position: relative;
+  }
+
+  .route-stop::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    width: 1px;
+    height: 100%;
+    background: var(--border);
+    z-index: 0;
+  }
+
+  .route-stop:last-child::before { display: none; }
+
+  .route-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .route-dot.critical { background: rgba(239,68,68,0.2); border: 1.5px solid #ef4444; color: #ef4444; }
+  .route-dot.warn { background: rgba(234,179,8,0.15); border: 1.5px solid #eab308; color: #eab308; }
+  .route-dot.ok { background: rgba(74,222,128,0.1); border: 1.5px solid var(--green1); color: var(--green1); }
+  .route-dot.skip { background: transparent; border: 1.5px solid var(--dim); color: var(--dim); }
+
+  .route-info { font-size: 0.82rem; }
+  .route-info strong { display: block; color: var(--text); font-weight: 500; margin-bottom: 0.1rem; }
+  .route-info span { color: var(--muted); font-size: 0.75rem; }
+
+  /* ─── SWOT ─── */
+  .swot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .swot-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+  }
+
+  .swot-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .swot-badge {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .swot-badge.s { background: rgba(74,222,128,0.15); color: var(--green1); }
+  .swot-badge.w { background: rgba(234,179,8,0.1); color: #eab308; }
+  .swot-badge.o { background: rgba(45,212,191,0.1); color: var(--teal); }
+  .swot-badge.t { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+  .swot-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .swot-items { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+
+  .swot-items li {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .swot-items li::before {
+    content: '—';
+    color: var(--dim);
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+
+  /* ─── REVENUE ─── */
+  .revenue-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .revenue-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.8rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .revenue-card:first-child {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .revenue-card:hover { border-color: rgba(74,222,128,0.25); }
+
+  .revenue-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green1);
+    margin-bottom: 0.5rem;
+  }
+
+  .revenue-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .revenue-desc {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .revenue-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+  }
+
+  .revenue-sub { color: var(--muted); font-size: 0.8rem; }
+
+  /* ─── COST TABLE ─── */
+  .cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+  }
+
+  .cost-table th {
+    text-align: left;
+    padding: 0.8rem 1.2rem;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cost-table td {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid rgba(30,46,30,0.5);
+    color: var(--text);
+  }
+
+  .cost-table tr:last-child td {
+    border-bottom: none;
+    font-weight: 600;
+    color: var(--green1);
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+  }
+
+  .cost-table tr:hover td { background: rgba(74,222,128,0.03); }
+
+  /* ─── ROADMAP ─── */
+  .roadmap-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .roadmap-timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 3rem;
+    position: relative;
+  }
+
+  .roadmap-timeline::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), var(--green2), var(--teal), var(--border));
+  }
+
+  .roadmap-item {
+    padding: 0 1rem;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .roadmap-dot {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+    font-size: 1.3rem;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .roadmap-item:nth-child(1) .roadmap-dot { border-color: var(--green2); }
+  .roadmap-item:nth-child(2) .roadmap-dot { border-color: var(--teal); }
+  .roadmap-item:nth-child(3) .roadmap-dot { border-color: var(--lime); }
+  .roadmap-item:nth-child(4) .roadmap-dot { border-color: rgba(74,222,128,0.4); }
+
+  .roadmap-phase {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green1);
+    margin-bottom: 0.4rem;
+  }
+
+  .roadmap-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .roadmap-desc {
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    padding: 3rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
+  .footer-tagline {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+  }
+
+  .footer-right { color: var(--dim); font-size: 0.8rem; text-align: right; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── COMPETITIVE ─── */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    font-size: 0.88rem;
+  }
+
+  .comp-table th {
+    padding: 1rem 1.4rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  .comp-table td {
+    padding: 1rem 1.4rem;
+    border-bottom: 1px solid rgba(30,46,30,0.4);
+    color: var(--text);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .comp-table td:first-child { font-weight: 600; }
+
+  .comp-table tr.highlight-row td { background: rgba(74,222,128,0.04); }
+  .comp-table tr.highlight-row td:first-child { color: var(--green1); }
+
+  .badge-win {
+    background: rgba(74,222,128,0.1);
+    color: var(--green1);
+    border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span class="highlight">Green Node</span></div>
+  <ul class="nav-links">
+    <li><a href="#problem" class="active">Problem</a></li>
+    <li><a href="#features">Sensors</a></li>
+    <li><a href="#capabilities">Capabilities</a></li>
+    <li><a href="#swot">SWOT</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contact" class="nav-cta">Get Started →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-content">
+    <div class="hero-badge">Precision Plant Intelligence</div>
+    <h1>
+      <span class="highlight">Smart Sensors</span><br>
+      for Every<br>
+      Green Space
+    </h1>
+    <p>Green Node puts an intelligent sensor node wherever plants grow — watching, measuring, and reporting so maintenance happens when and where it is actually needed.</p>
+    <div class="hero-buttons">
+      <a href="#capabilities" class="btn-primary">Explore Platform →</a>
+      <a href="#roadmap" class="btn-secondary">90-Day Roadmap</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-row fade-up">
+  <div class="stat-card">
+    <div class="stat-num"><span class="highlight">₹2,390</span></div>
+    <div class="stat-label">Full node hardware cost — deployable at scale without external capital</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num"><span class="highlight-warm">75%</span></div>
+    <div class="stat-label">Reduction in daily inspection time through prioritised worker routes</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num"><span class="highlight">5 mo.</span></div>
+    <div class="stat-label">Hardware payback period at ₹500/node/month SaaS pricing</div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem-section" id="problem">
+  <div class="section-tag">The Problem</div>
+  <div class="section-title">Plant maintenance runs on <span class="highlight">fixed schedules</span> — not actual plant need</div>
+  <div class="problem-grid">
+    <div class="problem-list">
+      <div class="problem-item fade-up">
+        <div class="problem-icon">🌡️</div>
+        <div class="problem-text"><strong>Heat wave blindness</strong>Plants die during heat waves while contractors are "on schedule" — no real-time data triggers action.</div>
+      </div>
+      <div class="problem-item fade-up">
+        <div class="problem-icon">🚶</div>
+        <div class="problem-text"><strong>Inefficient wandering</strong>Workers check plants in order of encounter, not urgency — wasting hours on healthy plants while stressed ones go unnoticed.</div>
+      </div>
+      <div class="problem-item fade-up">
+        <div class="problem-icon">💧</div>
+        <div class="problem-text"><strong>Monsoon overwatering</strong>Irrigation runs on schedule during monsoon, causing root rot and water wastage with no feedback loop.</div>
+      </div>
+      <div class="problem-item fade-up">
+        <div class="problem-icon">🍄</div>
+        <div class="problem-text"><strong>Disease spreads undetected</strong>Fungal infections and leaf stress are invisible until they've already caused irreversible damage.</div>
+      </div>
+    </div>
+    <div class="problem-callout fade-up">
+      <div class="callout-quote">"Plants don't fail on schedule — so why does maintenance run on one?"</div>
+      <div class="callout-detail">
+        Whether it's a highway median, nursery, or university campus, the result is always the same: financial loss, safety hazards, and reputational damage from dead plants that data could have saved.
+        <br><br>
+        Green Node puts an intelligent sensor node wherever plants grow. The hardware is under ₹2,400. The intelligence runs on the node itself.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES / SENSORS -->
+<section id="features">
+  <div class="section-tag">Sensor Stack</div>
+  <div class="section-title">What <span class="highlight">Green Node</span> Measures</div>
+  <p class="section-sub">A carefully selected sensor stack — no bloat, no missing pieces. Every component earns its place on the BOM.</p>
+  <div class="features-grid fade-up">
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <div class="feature-title">ESP32-C3 — The Brain</div>
+      <div class="feature-desc">Handles all logic, WiFi, BLE, and live OpenWeatherMap API calls. The intelligence hub of every node.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📷</div>
+      <div class="feature-title">ESP32-CAM — The Eyes</div>
+      <div class="feature-desc">Daily snapshots for visual leaf health analysis. HSV colour thresholds detect yellowing, browning, and dark patches on-device.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌡️</div>
+      <div class="feature-title">DHT11 × 2 — Dual Temp</div>
+      <div class="feature-desc">Temperature and humidity at both canopy and soil level. Reveals actual thermal stress versus ambient air temperature.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">☀️</div>
+      <div class="feature-title">LDR — Light Tracking</div>
+      <div class="feature-desc">Light intensity, shading detection, and day/night cycle. Flags plants under flyovers or shade nets before they fail.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💧</div>
+      <div class="feature-title">Soil Moisture Sensor</div>
+      <div class="feature-desc">The primary watering trigger. Combined with forecast data to eliminate pre-storm irrigation and catch post-sunny-week dryness.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📡</div>
+      <div class="feature-title">OTA Firmware Updates</div>
+      <div class="feature-desc">esp-serial-flasher integration lets you push updates over WiFi to any deployed node. No technician visits required.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CAPABILITIES -->
+<section class="capabilities-section" id="capabilities">
+  <div class="section-tag">Capabilities</div>
+  <div class="section-title">What <span class="highlight">Green Node</span> Can Do</div>
+
+  <div class="cap-item fade-up">
+    <div>
+      <div class="cap-num">01</div>
+      <div class="cap-title"><span class="highlight">Smart Irrigation</span> Decisions</div>
+      <div class="cap-desc">Soil moisture data is combined with live weather forecasts from OpenWeatherMap. If soil is dry and no rain is forecast within 6 hours, an alert fires. If rain is incoming, the alert is suppressed. No more watering before a storm.</div>
+      <span class="cap-pill">🌧️ Rain-aware</span>
+      <span class="cap-pill">📊 Live API</span>
+      <span class="cap-pill">🔔 Smart Alerts</span>
+    </div>
+    <div class="cap-visual">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:1rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Soil Moisture — Node Array</div>
+      <div class="cap-bar-row"><div class="cap-bar-label">Node 14</div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:18%"></div></div><div class="cap-bar-val" style="color:#ef4444">18%</div></div>
+      <div class="cap-bar-row"><div class="cap-bar-label">Node 7</div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:34%"></div></div><div class="cap-bar-val" style="color:#eab308">34%</div></div>
+      <div class="cap-bar-row"><div class="cap-bar-label">Node 3</div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:62%"></div></div><div class="cap-bar-val">62%</div></div>
+      <div class="cap-bar-row"><div class="cap-bar-label">Node 1</div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:78%"></div></div><div class="cap-bar-val">78%</div></div>
+      <div class="cap-bar-row"><div class="cap-bar-label">Node 5</div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:81%"></div></div><div class="cap-bar-val">81%</div></div>
+    </div>
+  </div>
+
+  <div class="cap-item reverse fade-up">
+    <div>
+      <div class="cap-num">02</div>
+      <div class="cap-title"><span class="highlight">Route Optimisation</span> for Workers</div>
+      <div class="cap-desc">Workers wander — they check plants in the order they encounter them, not urgency. Green Node ranks plant health across the deployment. What used to take 3 hours is compressed into a focused 45-minute route. A 75% reduction without extra staff.</div>
+      <span class="cap-pill">⏱️ 75% time saved</span>
+      <span class="cap-pill">🗺️ Priority routing</span>
+      <span class="cap-pill">📋 Shift dashboard</span>
+    </div>
+    <div class="cap-visual route-visual">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.8rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Today's Inspection Route</div>
+      <div class="route-stop"><div class="route-dot critical">1</div><div class="route-info"><strong>Plant 14 — URGENT</strong><span>Soil critically dry · 18% · No rain forecast</span></div></div>
+      <div class="route-stop"><div class="route-dot warn">2</div><div class="route-info"><strong>Plant 7 — Check</strong><span>Temperature stress flagged · 38°C canopy</span></div></div>
+      <div class="route-stop"><div class="route-dot ok">3</div><div class="route-info"><strong>Plant 3 — Monitor</strong><span>Slight light deprivation detected</span></div></div>
+      <div class="route-stop"><div class="route-dot skip">✓</div><div class="route-info"><strong style="color:var(--dim)">Plants 1, 2, 5, 6 — Skip</strong><span>All healthy · Moisture above 75%</span></div></div>
+    </div>
+  </div>
+
+  <div class="cap-item fade-up">
+    <div>
+      <div class="cap-num">03</div>
+      <div class="cap-title"><span class="highlight">Visual Leaf Health</span> Analysis</div>
+      <div class="cap-desc">The ESP32-CAM captures daily canopy images. Rule-based HSV threshold detection — no cloud ML required — identifies yellowing (nitrogen deficiency), browning (heat stress), and dark patches (early fungal infection) on the node itself.</div>
+      <span class="cap-pill">🟡 Yellowing → N deficiency</span>
+      <span class="cap-pill">🟤 Browning → Heat stress</span>
+      <span class="cap-pill">⚫ Dark patches → Fungal</span>
+    </div>
+    <div class="cap-visual">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:1rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Leaf Health Status</div>
+      <div style="display:flex;flex-direction:column;gap:0.7rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.15);border-radius:8px;font-size:0.82rem;">
+          <span style="color:var(--text)">🟡 Node 14 · Yellowing</span>
+          <span style="color:#ef4444;font-weight:600;font-size:0.75rem;">HIGH</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.12);border-radius:8px;font-size:0.82rem;">
+          <span style="color:var(--text)">⚫ Node 9 · Dark patches</span>
+          <span style="color:#eab308;font-weight:600;font-size:0.75rem;">MED</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.1);border-radius:8px;font-size:0.82rem;">
+          <span style="color:var(--text)">✅ Nodes 1–6 · Normal</span>
+          <span style="color:var(--green1);font-weight:600;font-size:0.75rem;">OK</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SWOT -->
+<section id="swot">
+  <div class="section-tag">Analysis</div>
+  <div class="section-title"><span class="highlight">SWOT</span> Analysis</div>
+  <div class="swot-grid fade-up">
+    <div class="swot-card">
+      <div class="swot-header">
+        <div class="swot-badge s">S</div>
+        <div class="swot-title">Strengths</div>
+      </div>
+      <ul class="swot-items">
+        <li>Full node under ₹2,400 — deployable at scale without investor backing</li>
+        <li>Weather API integration is a genuine moat; no competitor combines on-ground data with forecast APIs</li>
+        <li>Route optimisation solves a worker problem — stronger sales argument than a plant problem</li>
+        <li>One hardware unit works across highways, nurseries, campuses, rooftops</li>
+        <li>Visual health monitoring at ₹350 — unmatched at this price point</li>
+      </ul>
+    </div>
+    <div class="swot-card">
+      <div class="swot-header">
+        <div class="swot-badge w">W</div>
+        <div class="swot-title">Weaknesses</div>
+      </div>
+      <ul class="swot-items">
+        <li>DHT11 ±2°C / ±5% RH accuracy degrades in sustained high-humidity; upgrade to DHT22 / SHT31 for production</li>
+        <li>Single soil sensor per node may miss variability across wider planting strips</li>
+        <li>No standalone power out of the box — solar + battery add ~₹1,100 per node</li>
+        <li>ESP-NOW range caps at ~200m; long highways need 4G relay modules</li>
+      </ul>
+    </div>
+    <div class="swot-card">
+      <div class="swot-header">
+        <div class="swot-badge o">O</div>
+        <div class="swot-title">Opportunities</div>
+      </div>
+      <ul class="swot-items">
+        <li>NHAI Smart Highway tenders — active government IoT procurement, no dedicated startup targeting horticulture</li>
+        <li>Nursery export compliance — EU/US phytosanitary documentation unlocks premium pricing</li>
+        <li>State PWD contracts — Karnataka, AP, Maharashtra have active urban greening budgets</li>
+        <li>CSR/ESG funded nodes for highway-adjacent companies</li>
+        <li>Research data licensing — microclimate corridor data has direct value for ISRO and climate consultancies</li>
+      </ul>
+    </div>
+    <div class="swot-card">
+      <div class="swot-header">
+        <div class="swot-badge t">T</div>
+        <div class="swot-title">Threats</div>
+      </div>
+      <ul class="swot-items">
+        <li>NHAI/PWD procurement takes 12–18 months; private nurseries are faster entry points</li>
+        <li>Highway vandalism — IP65 + tamper-evident mounting are non-negotiable</li>
+        <li>Connectivity dead zones — store-and-forward fallback essential for remote stretches</li>
+        <li>Indian monsoon stress at 85–95% RH for 4 months — conformal coating required from day one</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- REVENUE -->
+<section style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section-tag">Business Model</div>
+  <div class="section-title">Revenue <span class="highlight">Streams</span></div>
+  <div class="revenue-grid fade-up">
+    <div class="revenue-card">
+      <div>
+        <div class="revenue-tag">Flagship Contract</div>
+        <div class="revenue-title">Pilot Deployment</div>
+        <div class="revenue-desc">5 km highway stretch or 1-acre nursery pilot — 10 nodes, hardware, installation, and 6 months dashboard access.</div>
+      </div>
+      <div>
+        <div class="revenue-price"><span class="highlight">₹2–5L</span></div>
+        <div class="revenue-sub">per pilot contract</div>
+      </div>
+    </div>
+    <div class="revenue-card">
+      <div class="revenue-tag">Recurring</div>
+      <div class="revenue-title">Per-Node SaaS</div>
+      <div class="revenue-desc">Dashboard access, alert management, automated reports. 10 nodes = ₹5,000–8,000 MRR.</div>
+      <div class="revenue-price"><span class="highlight-warm">₹500–800</span></div>
+      <div class="revenue-sub">per node / month</div>
+    </div>
+    <div class="revenue-card">
+      <div class="revenue-tag">Premium Tier</div>
+      <div class="revenue-title">Compliance Reports</div>
+      <div class="revenue-desc">Automated phytosanitary export documentation for nurseries targeting EU/US markets.</div>
+      <div class="revenue-price"><span class="highlight">Premium</span></div>
+      <div class="revenue-sub">add-on tier</div>
+    </div>
+  </div>
+</section>
+
+<!-- COST TABLE -->
+<section>
+  <div class="section-tag">Bill of Materials</div>
+  <div class="section-title">Cost Per <span class="highlight">Node</span></div>
+  <p class="section-sub">Full production BOM — under ₹2,400. Hardware cost recovered in under 5 months at ₹500/node SaaS pricing.</p>
+  <table class="cost-table fade-up">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Role</th>
+        <th style="text-align:right">Cost (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>ESP32-C3</td><td>Main MCU — WiFi, BLE, logic, API</td><td style="text-align:right">320</td></tr>
+      <tr><td>ESP32-CAM</td><td>Daily image capture & leaf analysis</td><td style="text-align:right">350</td></tr>
+      <tr><td>DHT11 × 2</td><td>Temp + humidity, dual-level</td><td style="text-align:right">120</td></tr>
+      <tr><td>Soil Moisture Sensor</td><td>Primary irrigation trigger</td><td style="text-align:right">80</td></tr>
+      <tr><td>LDR</td><td>Light intensity + shading detection</td><td style="text-align:right">20</td></tr>
+      <tr><td>Enclosure + PCB + wiring</td><td>IP65 housing, connectors, cables</td><td style="text-align:right">500</td></tr>
+      <tr><td>Power (5V supply)</td><td>Regulated power delivery</td><td style="text-align:right">200</td></tr>
+      <tr><td>Misc (LEDs, resistors, caps)</td><td>Supporting components</td><td style="text-align:right">100</td></tr>
+      <tr><td>Solar + Battery (optional)</td><td>Off-grid deployment</td><td style="text-align:right">+1,100</td></tr>
+      <tr><td colspan="2"><strong>Total (grid-powered)</strong></td><td style="text-align:right"><strong>₹1,690</strong></td></tr>
+      <tr><td colspan="2"><strong>Total (solar-ready)</strong></td><td style="text-align:right"><strong>₹2,790</strong></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ROADMAP -->
+<section class="roadmap-section" id="roadmap">
+  <div class="section-tag">Go-to-Market</div>
+  <div class="section-title">90-Day <span class="highlight">MVP Roadmap</span></div>
+  <div class="roadmap-timeline fade-up">
+    <div class="roadmap-item">
+      <div class="roadmap-dot">🔧</div>
+      <div class="roadmap-phase">Weeks 1–2</div>
+      <div class="roadmap-title">Build & Validate Indoors</div>
+      <div class="roadmap-desc">Assemble single node. Validate DHT11, soil sensor, LDR, weather API pipeline. Test ESP32-CAM + HSV leaf analysis.</div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-dot">🌿</div>
+      <div class="roadmap-phase">Weeks 3–4</div>
+      <div class="roadmap-title">Outdoor Field Test</div>
+      <div class="roadmap-desc">Deploy on campus or terrace. Validate solar power, IP65 enclosure, and OTA firmware update via esp-serial-flasher.</div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-dot">📊</div>
+      <div class="roadmap-phase">Weeks 5–8</div>
+      <div class="roadmap-title">Real Deployment + Data</div>
+      <div class="roadmap-desc">Deploy 3–5 nodes on nursery or campus median. Build dashboard. Collect 30 continuous days of live sensor data.</div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-dot">💼</div>
+      <div class="roadmap-phase">Weeks 9–12</div>
+      <div class="roadmap-title">First Sales Conversations</div>
+      <div class="roadmap-desc">Approach nursery owners, campus facilities, highway contractors. Present real data. That 30-day proof is your pitch.</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETITIVE -->
+<section>
+  <div class="section-tag">Competitive Landscape</div>
+  <div class="section-title">Where <span class="highlight">Green Node</span> Wins</div>
+  <table class="comp-table fade-up">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Approach</th>
+        <th>Weakness</th>
+        <th>Green Node Edge</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Fasal</td>
+        <td>Farm-specific IoT</td>
+        <td>10× the hardware cost, vertical-specific</td>
+        <td><span class="badge-win">General purpose · ₹2,400</span></td>
+      </tr>
+      <tr>
+        <td>CropIn</td>
+        <td>Software-only platform</td>
+        <td>No on-ground sensors — estimations only</td>
+        <td><span class="badge-win">Actual sensor truth</span></td>
+      </tr>
+      <tr>
+        <td>Manual Contractors</td>
+        <td>Schedule-based inspection</td>
+        <td>Unaccountable, inefficient, expensive at scale</td>
+        <td><span class="badge-win">Data trail + route optimisation</span></td>
+      </tr>
+      <tr class="highlight-row">
+        <td>Green Node</td>
+        <td>On-ground IoT + weather API + visual AI</td>
+        <td>Early stage — ESP-NOW range limitation</td>
+        <td><span class="badge-win">Only system combining all three</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- FOOTER -->
+<footer id="contact">
+  <div>
+    <div class="footer-logo"><span class="highlight">Green Node</span></div>
+    <div class="footer-tagline">Plant Intelligence for Every Green Space</div>
+  </div>
+  <div class="footer-right">
+    Hardware. Intelligence. Wherever plants grow.<br>
+    Start with one node. Get 30 days of real data.
+  </div>
+</footer>
+
+<script>
+// Intersection Observer for fade-up animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// Staggered children
+document.querySelectorAll('.problem-list').forEach(list => {
+  list.querySelectorAll('.problem-item').forEach((item, i) => {
+    item.style.transitionDelay = `${i * 0.1}s`;
+  });
+});
+
+document.querySelectorAll('.features-grid').forEach(grid => {
+  grid.querySelectorAll('.feature-card').forEach((card, i) => {
+    card.style.transitionDelay = `${i * 0.07}s`;
+  });
+});
+
+// Nav active state
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === `#${current}`);
+  });
+});
+</script>
+</body>
+</html>

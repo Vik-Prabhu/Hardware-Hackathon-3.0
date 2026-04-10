@@ -4,17 +4,37 @@
 
 ---
 
+<div style="display: flex; gap: 2rem; margin: 2rem 0; flex-wrap: wrap;">
+<div style="flex: 1; min-width: 150px; text-align: center;">
+<strong style="font-size: 2rem; color: var(--vp-c-brand);">₹2,390</strong><br/>
+<small>Full node hardware cost — deployable at scale without external capital</small>
+</div>
+<div style="flex: 1; min-width: 150px; text-align: center;">
+<strong style="font-size: 2rem; color: var(--vp-c-brand);">75%</strong><br/>
+<small>Reduction in daily inspection time through prioritised worker routes</small>
+</div>
+<div style="flex: 1; min-width: 150px; text-align: center;">
+<strong style="font-size: 2rem; color: var(--vp-c-brand);">5 mo.</strong><br/>
+<small>Hardware payback period at ₹500/node/month SaaS pricing</small>
+</div>
+</div>
+
+---
+
 ## The Problem
 
 Plant maintenance today runs on **fixed schedules** — not actual plant need. Workers water and inspect on a calendar, not on data. Whether it is a highway median, a nursery, or a university campus, the result is always the same:
 
-- Plants die during heat waves while contractors are "on schedule"
-- Workers wander inefficiently through large green spaces with no priority system — wasting hours checking healthy plants while stressed ones go unnoticed
-- Overwatering during monsoon causes root rot and water wastage
-- Disease spreads undetected before anyone notices
-- Dead plants mean financial loss, safety hazards, and reputational damage
+- 🌡️ **Heat wave blindness** — Plants die during heat waves while contractors are "on schedule" — no real-time data triggers action
+- 🚶 **Inefficient wandering** — Workers check plants in order of encounter, not urgency — wasting hours on healthy plants while stressed ones go unnoticed
+- 💧 **Monsoon overwatering** — Irrigation runs on schedule during monsoon, causing root rot and water wastage with no feedback loop
+- 🍄 **Disease spreads undetected** — Fungal infections and leaf stress are invisible until they've already caused irreversible damage
 
-**Green Node** puts an intelligent sensor node wherever plants grow. Each node watches, measures, and reports — so maintenance happens when and where it is actually needed.
+> *"Plants don't fail on schedule — so why does maintenance run on one?"*
+>
+> Whether it's a highway median, nursery, or university campus, the result is always the same: financial loss, safety hazards, and reputational damage from dead plants that data could have saved.
+>
+> Green Node puts an intelligent sensor node wherever plants grow. The hardware is under ₹2,400. The intelligence runs on the node itself.
 
 ---
 
@@ -33,49 +53,54 @@ Green Node is a general-purpose platform. The same hardware works across every d
 
 ## What Green Node Measures
 
-Each node carries a carefully selected sensor stack:
+Each node carries a carefully selected sensor stack — no bloat, no missing pieces. Every component earns its place on the BOM.
 
-- **ESP32-C3** — The brain. Handles all logic, WiFi, BLE, and live weather API calls
-- **ESP32-CAM** — The eyes. Daily snapshots for visual leaf health analysis
-- **DHT11 × 2** — Temperature and humidity at both canopy and soil level
-- **LDR** — Light intensity, shading detection, and day/night cycle tracking
-- **Soil Moisture Sensor** — The primary watering trigger
-- **Green and Red LEDs** — Instant on-site visual status for any worker passing by
-- **esp-serial-flasher** — Remote firmware updates without physically touching the node
+| Sensor | Role |
+|---|---|
+| 🧠 **ESP32-C3 — The Brain** | Handles all logic, WiFi, BLE, and live OpenWeatherMap API calls. The intelligence hub of every node. |
+| 📷 **ESP32-CAM — The Eyes** | Daily snapshots for visual leaf health analysis. HSV colour thresholds detect yellowing, browning, and dark patches on-device. |
+| 🌡️ **DHT11 × 2 — Dual Temp** | Temperature and humidity at both canopy and soil level. Reveals actual thermal stress versus ambient air temperature. |
+| ☀️ **LDR — Light Tracking** | Light intensity, shading detection, and day/night cycle. Flags plants under flyovers or shade nets before they fail. |
+| 💧 **Soil Moisture Sensor** | The primary watering trigger. Combined with forecast data to eliminate pre-storm irrigation and catch post-sunny-week dryness. |
+| 📡 **OTA Firmware Updates** | esp-serial-flasher integration lets you push updates over WiFi to any deployed node. No technician visits required. |
 
 ---
 
 ## What Green Node Can Do
 
-### Smart Irrigation Decisions
+### 01 — Smart Irrigation Decisions
 
-Soil moisture data is combined with live weather forecast from OpenWeatherMap. If the soil is dry and no rain is forecast within 6 hours, the red LED fires and an alert goes to the maintenance team. If rain is incoming, the alert is suppressed. No more watering before a storm. No more dry plants the day after a sunny week.
+Soil moisture data is combined with live weather forecasts from OpenWeatherMap. If soil is dry and no rain is forecast within 6 hours, an alert fires. If rain is incoming, the alert is suppressed. No more watering before a storm. No more dry plants the day after a sunny week.
 
-### Route Optimization for Maintenance Workers
+> 🌧️ Rain-aware · 📊 Live API · 🔔 Smart Alerts
+
+### 02 — Route Optimisation for Workers
 
 This is one of the most overlooked problems in plant maintenance. Workers in large nurseries or long highway stretches **wander** — they check plants in the order they encounter them, not in the order of urgency. Green Node changes this.
 
-Nodes continuously rank plant health across the entire deployment. When a worker starts their shift, the dashboard generates a **prioritized inspection route** — check plant 14 first (soil critically dry), then plant 7 (temperature stress flagged), skip plants 1 through 6 (all healthy). What used to take 3 hours of walking is compressed into a focused 45-minute route. That is a 75% reduction in daily inspection time — without hiring more staff or buying more equipment.
+Nodes continuously rank plant health across the entire deployment. When a worker starts their shift, the dashboard generates a **prioritised inspection route** — check plant 14 first (soil critically dry), then plant 7 (temperature stress flagged), skip plants 1 through 6 (all healthy). What used to take 3 hours of walking is compressed into a focused 45-minute route. That is a **75% reduction** in daily inspection time — without hiring more staff or buying more equipment.
 
-### Visual Leaf Health
+> ⏱️ 75% time saved · 🗺️ Priority routing · 📋 Shift dashboard
 
-The ESP32-CAM captures daily images of the plant canopy. Basic colour analysis using HSV thresholds detects:
+### 03 — Visual Leaf Health Analysis
 
-- Yellowing → nitrogen deficiency or overwatering
-- Browning → heat stress or root rot
-- Dark patches → early fungal infection
+The ESP32-CAM captures daily canopy images. Rule-based HSV threshold detection — no cloud ML required — identifies issues on the node itself:
+
+- 🟡 **Yellowing** → Nitrogen deficiency or overwatering
+- 🟤 **Browning** → Heat stress or root rot
+- ⚫ **Dark patches** → Early fungal infection
 
 No cloud ML required at MVP. Rule-based detection works reliably and runs on the node itself.
 
-### Microclimate Logging
+### 04 — Microclimate Logging
 
 Two DHT11 sensors — one at ground level, one at canopy height — reveal the actual thermal stress a plant experiences versus ambient air temperature. This localised data is far more accurate than any regional weather station and has genuine research value for urban heat island studies.
 
-### Light Deprivation Detection
+### 05 — Light Deprivation Detection
 
 The LDR tracks daily light exposure. Plants under flyovers, shade nets, or building shadows that receive insufficient light are flagged before they fail — not after.
 
-### Remote Firmware Updates
+### 06 — Remote Firmware Updates
 
 Deployed nodes in a highway or remote garden cannot always be physically accessed. The esp-serial-flasher integration lets you push firmware updates over WiFi to any node in the field. No technician visits required.
 
@@ -96,148 +121,114 @@ Green Node is a focused, low-cost system. Here is what it does not attempt:
 
 ### Strengths
 
-**Extremely Low Hardware Cost**
-The full node comes in under ₹2,400. This is deployable at scale without external capital or investor backing.
-
-**Weather API Is a Real Moat**
-No competitor in municipal or nursery IoT is combining live on-ground sensor data with forecast APIs for irrigation decisions. This is genuinely differentiated and immediately implementable.
-
-**Route Optimization Solves a Human Problem**
-Most IoT products solve a plant problem. The prioritized walk route solves a *worker* problem — and that is a far stronger sales argument to any facility manager or nursery owner.
-
-**General Purpose by Design**
-One hardware unit works for highways, nurseries, campuses, and rooftops. No vertical-specific engineering needed to enter a new market.
-
-**Visual Health Monitoring at ₹350**
-Leaf colour analysis via ESP32-CAM is something no existing municipal IoT product does at this price point.
-
----
+- **Extremely Low Hardware Cost** — Full node under ₹2,400. Deployable at scale without investor backing.
+- **Weather API Is a Real Moat** — No competitor combines on-ground sensor data with forecast APIs for irrigation decisions. Genuinely differentiated and immediately implementable.
+- **Route Optimisation Solves a Worker Problem** — Most IoT products solve a plant problem. Prioritised walk routes solve a *worker* problem — a far stronger sales argument to any facility manager or nursery owner.
+- **General Purpose by Design** — One hardware unit works across highways, nurseries, campuses, and rooftops. No vertical-specific engineering needed.
+- **Visual Health Monitoring at ₹350** — Leaf colour analysis via ESP32-CAM is something no existing municipal IoT product does at this price point.
 
 ### Weaknesses
 
-**DHT11 Long-Term Accuracy**
-Plus or minus 2°C and plus or minus 5% RH, with degradation in sustained high-humidity environments. Acceptable for prototyping and pilots. Production units should upgrade to DHT22 or SHT31.
-
-**Single Soil Sensor Per Node**
-One measurement point may miss moisture variability across wider planting strips. Larger beds may need two sensors per node in production.
-
-**No Standalone Power Out of the Box**
-Highway medians and remote gardens have no power infrastructure. A solar panel and battery add approximately ₹1,100 per node and are essential for any real-world deployment.
-
-**ESP-NOW Range Limitation**
-Without LoRa, node-to-node communication caps at around 200 metres. Long highway corridors will need 4G/GPRS relay modules or WiFi access point repeaters at intervals.
-
----
+- **DHT11 Long-Term Accuracy** — ±2°C / ±5% RH accuracy degrades in sustained high-humidity environments. Upgrade to DHT22 / SHT31 for production.
+- **Single Soil Sensor Per Node** — One measurement point may miss variability across wider planting strips. Larger beds may need two sensors per node.
+- **No Standalone Power Out of the Box** — Solar panel + battery add ~₹1,100 per node. Essential for any off-grid deployment.
+- **ESP-NOW Range Limitation** — Caps at ~200m. Long highway corridors will need 4G relay modules or WiFi access point repeaters.
 
 ### Opportunities
 
-**NHAI Smart Highway Tenders**
-Active government procurement for IoT infrastructure monitoring exists on national highways. Highway horticulture is an adjacent category with no dedicated startup targeting it.
-
-**Nursery Export Compliance**
-Indian nurseries exporting to EU or US markets must provide documented, traceable plant health records. Green Node automated logs can serve as phytosanitary compliance evidence, unlocking premium export pricing.
-
-**State PWD Contracts**
-Every state Public Works Department maintains roadside plantations. Karnataka, Andhra Pradesh, and Maharashtra have active urban greening budgets and green infrastructure mandates.
-
-**CSR and ESG Funding**
-Highway-adjacent companies (logistics, fuel, hospitality) have CSR mandates around green infrastructure. A sponsored-node model lets them fund a stretch of highway greenery in exchange for visibility.
-
-**Research Data Licensing**
-Corridor microclimate data — temperature, humidity, light along a 10km stretch — has direct value for ISRO vegetation index ground-truthing, climate research, and urban planning consultancies.
-
----
+- **NHAI Smart Highway Tenders** — Active government IoT procurement. No dedicated startup targeting highway horticulture.
+- **Nursery Export Compliance** — EU/US phytosanitary documentation unlocks premium export pricing. Green Node automated logs serve as compliance evidence.
+- **State PWD Contracts** — Karnataka, AP, Maharashtra have active urban greening budgets and green infrastructure mandates.
+- **CSR/ESG Funding** — Highway-adjacent companies can fund a stretch of highway greenery in exchange for visibility through a sponsored-node model.
+- **Research Data Licensing** — Microclimate corridor data has direct value for ISRO vegetation index ground-truthing, climate research, and urban planning consultancies.
 
 ### Threats
 
-**Municipal Procurement Timelines**
-NHAI and PWD contracts take 12 to 18 months to close. Private sector entry points — commercial nurseries, campus facilities teams — are faster routes to initial paid pilots.
-
-**Vandalism in Public Spaces**
-Highway and park nodes are unguarded. IP65 enclosures and tamper-evident mounting are non-negotiable. The ESP32-CAM can also log images of any physical interference with the node.
-
-**Connectivity Dead Zones**
-Remote highway stretches have patchy 4G coverage. Weather API calls need a store-and-forward fallback — data caches on the C3's flash memory and uploads when signal returns.
-
-**Monsoon Hardware Stress**
-Indian monsoons bring 85 to 95 percent relative humidity for four months. DHT11 and LDR components need conformal coating applied before first deployment. This must be factored into the BOM from day one.
+- **Municipal Procurement Timelines** — NHAI/PWD contracts take 12–18 months. Private nurseries are faster entry points.
+- **Vandalism in Public Spaces** — IP65 enclosures + tamper-evident mounting are non-negotiable. ESP32-CAM can also log images of physical interference.
+- **Connectivity Dead Zones** — Store-and-forward fallback essential. Data caches on C3's flash memory and uploads when signal returns.
+- **Monsoon Hardware Stress** — Indian monsoons bring 85–95% RH for 4 months. Conformal coating required from day one.
 
 ---
 
 ## Revenue Streams
 
-**Pilot Contract**
-₹2 to 5 lakh for a 5 km highway stretch or 1-acre nursery pilot covering 10 nodes. Includes hardware, installation, and six months of dashboard access.
+### Pilot Deployment — ₹2–5 Lakh
 
-**Per-Node SaaS**
-₹500 to 800 per node per month for dashboard access, alert management, and automated reports. Ten nodes generates ₹5,000 to 8,000 monthly recurring revenue.
+5 km highway stretch or 1-acre nursery pilot — 10 nodes, hardware, installation, and 6 months of dashboard access.
 
-**Water Savings Performance Contract**
+### Per-Node SaaS — ₹500–800/node/month
+
+Dashboard access, alert management, and automated reports. 10 nodes generates ₹5,000–8,000 monthly recurring revenue.
+
+### Compliance Reports — Premium Tier
+
+Automated phytosanitary export documentation for nurseries targeting EU/US markets.
+
+### Water Savings Performance Contract
+
 Take 20% of proven water bill reduction. Aligns your incentive with the client's outcome.
 
-**Compliance Report Generation**
-Automated phytosanitary export documentation as a premium tier for nurseries targeting EU/US markets.
+### Annual Maintenance Plans
 
-**Annual Maintenance Plans**
 Calibration check-ups and node replacement service contracts for deployed sites.
 
 ---
 
 ## Cost Per Node
 
-The full production bill of materials comes in at approximately **₹2,390 per node**:
+Full production BOM — under ₹2,400. Hardware cost recovered in under 5 months at ₹500/node SaaS pricing.
 
-- ESP32-C3 module — ₹220
-- ESP32-CAM — ₹350
-- DHT11 sensors × 2 — ₹60
-- LDR — ₹10
-- Soil moisture sensor — ₹80
-- LEDs × 4 — ₹20
-- IP65 weatherproof enclosure — ₹300
-- PCB and connectors — ₹150
-- Solar panel 5V / 1W — ₹900
-- Li-ion battery and TP4056 charger — ₹200
-- Miscellaneous — ₹100
-
-At ₹500 per node per month SaaS pricing, the hardware cost per node is recovered in **under 5 months**.
+| Component | Role | Cost (₹) |
+|---|---|---:|
+| ESP32-C3 | Main MCU — WiFi, BLE, logic, API | 320 |
+| ESP32-CAM | Daily image capture & leaf analysis | 350 |
+| DHT11 × 2 | Temp + humidity, dual-level | 120 |
+| Soil Moisture Sensor | Primary irrigation trigger | 80 |
+| LDR | Light intensity + shading detection | 20 |
+| Enclosure + PCB + wiring | IP65 housing, connectors, cables | 500 |
+| Power (5V supply) | Regulated power delivery | 200 |
+| Misc (LEDs, resistors, caps) | Supporting components | 100 |
+| Solar + Battery (optional) | Off-grid deployment | +1,100 |
+| **Total (grid-powered)** | | **₹1,690** |
+| **Total (solar-ready)** | | **₹2,790** |
 
 ---
 
 ## 90-Day MVP Roadmap
 
-**Weeks 1 and 2 — Build and Validate Indoors**
-Assemble a single node. Validate the DHT11, soil sensor, LDR, and weather API pipeline end-to-end. Test ESP32-CAM image capture and basic HSV leaf colour analysis.
+### 🔧 Weeks 1–2 — Build & Validate Indoors
 
-**Weeks 3 and 4 — Outdoor Field Test**
-Deploy in a college campus garden or home terrace. Validate solar power operation, IP65 enclosure performance, and OTA firmware update via esp-serial-flasher.
+Assemble a single node. Validate DHT11, soil sensor, LDR, and weather API pipeline end-to-end. Test ESP32-CAM image capture and basic HSV leaf colour analysis.
 
-**Weeks 5 to 8 — Real Deployment and Data Collection**
-Deploy 3 to 5 nodes on a real stretch — a nursery row, a campus median, or a garden. Build a basic web dashboard showing node health, soil percentage, temperature, and active alerts. Collect 30 continuous days of data.
+### 🌿 Weeks 3–4 — Outdoor Field Test
 
-**Weeks 9 to 12 — First Sales Conversations**
-Approach a nursery owner, campus facilities manager, or state highway horticulture contractor. Present real data. Document water savings against their previous schedule-based baseline. That proof is your sales pitch.
+Deploy on a campus garden or home terrace. Validate solar power operation, IP65 enclosure performance, and OTA firmware update via esp-serial-flasher.
+
+### 📊 Weeks 5–8 — Real Deployment + Data Collection
+
+Deploy 3–5 nodes on a real stretch — a nursery row, a campus median, or a garden. Build a basic web dashboard showing node health, soil percentage, temperature, and active alerts. Collect 30 continuous days of live sensor data.
+
+### 💼 Weeks 9–12 — First Sales Conversations
+
+Approach nursery owners, campus facilities managers, or highway horticulture contractors. Present real data. Document water savings against their previous schedule-based baseline. That 30-day proof is your sales pitch.
 
 ---
 
 ## Competitive Position
 
-**vs. Fasal**
-Farm-specific IoT at 10× the hardware cost. Green Node is general purpose and deployable by a single engineer.
-
-**vs. CropIn**
-Software-only platform with no on-ground hardware. Green Node provides actual sensor truth, not estimations.
-
-**vs. Generic DHT11 Kits**
-Commodity sensors with no intelligence layer, no weather integration, no camera, and no route optimization. Green Node adds the decision-making layer on top.
-
-**vs. Manual Contractors**
-Schedule-based, unaccountable, and expensive at scale. Green Node creates a data trail that makes performance measurable and disputes impossible to ignore.
+| Product | Approach | Weakness | Green Node Edge |
+|---|---|---|---|
+| **Fasal** | Farm-specific IoT | 10× the hardware cost, vertical-specific | General purpose · ₹2,400 |
+| **CropIn** | Software-only platform | No on-ground sensors — estimations only | Actual sensor truth |
+| **Manual Contractors** | Schedule-based inspection | Unaccountable, inefficient, expensive at scale | Data trail + route optimisation |
+| **Green Node** | On-ground IoT + weather API + visual AI | Early stage — ESP-NOW range limitation | **Only system combining all three** |
 
 ---
 
 ## Conclusion
 
-Green Node is a general-purpose plant intelligence platform that works wherever plants need monitoring. The hardware is affordable, proven, and already available. The differentiation is the intelligence layer on top — weather-adjusted irrigation decisions, visual health monitoring, and prioritized worker routes that turn scattered data into clear daily actions.
+Green Node is a general-purpose plant intelligence platform that works wherever plants need monitoring. The hardware is affordable, proven, and already available. The differentiation is the intelligence layer on top — weather-adjusted irrigation decisions, visual health monitoring, and prioritised worker routes that turn scattered data into clear daily actions.
 
 Start with one node. Get 30 days of real data. That data is your sales pitch.
 

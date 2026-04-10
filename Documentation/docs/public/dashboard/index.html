@@ -18,9 +18,9 @@
         --border: rgba(100, 180, 255, 0.12);
         --border-hover: rgba(100, 180, 255, 0.28);
         --glass: blur(18px) saturate(1.5);
-        --text-primary: #eaf0ff;
-        --text-secondary: #8faad4;
-        --text-tertiary: #5a7298;
+        --text-primary: #FFFFFF;
+        --text-secondary: #FFFFFF;
+        --text-tertiary: #FFFFFF;
         --accent-cyan: #22d3ee;
         --accent-blue: #3b82f6;
         --accent-purple: #a78bfa;
@@ -130,10 +130,7 @@
         font-size: 1.5rem;
         font-weight: 800;
         letter-spacing: -0.02em;
-        background: linear-gradient(135deg, #fff 30%, var(--accent-cyan));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #FFFFFF;
       }
 
       .topbar .subtitle {
@@ -272,15 +269,16 @@
       .kpi .value {
         margin-top: 8px;
         font-family: var(--font-mono);
-        font-size: 2rem;
-        font-weight: 700;
+        font-size: 2.2rem;
+        font-weight: 800;
         letter-spacing: -0.03em;
         line-height: 1;
+        color: #FFFFFF;
       }
-      .kpi .value.cyan { color: var(--accent-cyan); text-shadow: 0 0 20px var(--glow-cyan); }
-      .kpi .value.green { color: var(--accent-green); text-shadow: 0 0 20px var(--glow-green); }
-      .kpi .value.amber { color: var(--accent-amber); text-shadow: 0 0 20px var(--glow-amber); }
-      .kpi .value.red { color: var(--accent-red); text-shadow: 0 0 20px var(--glow-red); }
+      .kpi .value.cyan { color: #FFFFFF; }
+      .kpi .value.green { color: #FFFFFF; }
+      .kpi .value.amber { color: #FFFFFF; }
+      .kpi .value.red { color: #FFFFFF; }
 
       @keyframes fadeUp {
         from { opacity: 0; transform: translateY(16px); }
@@ -340,8 +338,8 @@
         display: flex; justify-content: space-between; align-items: center;
         margin-bottom: 12px;
       }
-      .node-name { font-weight: 700; font-size: 0.92rem; }
-      .node-id { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 0.7rem; }
+      .node-name { font-weight: 800; font-size: 1rem; color: #FFFFFF; }
+      .node-id { color: #FFFFFF; font-family: var(--font-mono); font-size: 0.7rem; }
 
       .pill {
         font-size: 0.65rem; font-weight: 700;
@@ -354,11 +352,11 @@
         width: 6px; height: 6px;
         border-radius: 50%;
       }
-      .pill.healthy { background: rgba(52, 211, 153, 0.12); color: var(--accent-green); }
+      .pill.healthy { background: rgba(52, 211, 153, 0.12); color: #FFFFFF; }
       .pill.healthy::before { background: var(--accent-green); box-shadow: 0 0 6px var(--glow-green); }
-      .pill.warning { background: rgba(251, 191, 36, 0.12); color: var(--accent-amber); }
+      .pill.warning { background: rgba(251, 191, 36, 0.12); color: #FFFFFF; }
       .pill.warning::before { background: var(--accent-amber); box-shadow: 0 0 6px var(--glow-amber); }
-      .pill.critical { background: rgba(239, 68, 68, 0.12); color: var(--accent-red); }
+      .pill.critical { background: rgba(239, 68, 68, 0.12); color: #FFFFFF; }
       .pill.critical::before { background: var(--accent-red); box-shadow: 0 0 6px var(--glow-red); }
 
       .node-metrics { display: flex; flex-direction: column; gap: 10px; }
@@ -367,7 +365,7 @@
         display: flex; align-items: center; gap: 10px;
       }
       .metric-label {
-        font-size: 0.72rem; color: var(--text-secondary);
+        font-size: 0.78rem; color: #FFFFFF;
         width: 80px; flex-shrink: 0;
         display: flex; align-items: center; gap: 5px;
       }
@@ -387,8 +385,9 @@
 
       .metric-val {
         font-family: var(--font-mono);
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: 0.9rem;
+        font-weight: 900;
+        color: #FFFFFF;
         width: 42px; text-align: right; flex-shrink: 0;
       }
 
@@ -396,8 +395,8 @@
         margin-top: 12px;
         padding-top: 10px;
         border-top: 1px solid rgba(255, 255, 255, 0.04);
-        font-size: 0.78rem;
-        color: var(--text-secondary);
+        font-size: 0.86rem;
+        color: #FFFFFF;
         display: flex; align-items: center; gap: 6px;
       }
 
@@ -426,7 +425,7 @@
         font-size: 0.75rem; font-weight: 700;
       }
 
-      .msg-content { flex: 1; font-size: 0.88rem; line-height: 1.5; color: var(--text-secondary); }
+      .msg-content { flex: 1; font-size: 0.98rem; line-height: 1.5; color: #FFFFFF; }
 
       .msg-speak-btn {
         flex-shrink: 0;
@@ -434,7 +433,7 @@
         border-radius: 8px;
         border: 1px solid var(--border);
         background: var(--bg-card);
-        color: var(--text-tertiary);
+        color: #FFFFFF;
         cursor: pointer;
         display: flex; align-items: center; justify-content: center;
         transition: all var(--transition-fast);
@@ -442,13 +441,13 @@
       }
       .msg-speak-btn:hover {
         border-color: var(--accent-cyan);
-        color: var(--accent-cyan);
+        color: #FFFFFF;
         box-shadow: 0 0 12px var(--glow-cyan);
       }
       .msg-speak-btn.playing {
         border-color: var(--accent-cyan);
         background: rgba(34, 211, 238, 0.1);
-        color: var(--accent-cyan);
+        color: #FFFFFF;
         animation: speakerPulse 1s ease-in-out infinite;
       }
       @keyframes speakerPulse {
@@ -479,7 +478,7 @@
       .node-dot:hover { filter: brightness(1.3); }
       .control-dot { fill: var(--accent-purple); }
       .map text {
-        fill: var(--text-secondary); font-family: var(--font-body);
+        fill: #FFFFFF; font-family: var(--font-body);
         font-size: 11px; font-weight: 500;
       }
 
@@ -530,6 +529,7 @@
         margin-bottom: 16px;
         transition: border-color var(--transition-fast);
       }
+      .modal input[type="text"]::placeholder { color: #FFFFFF; opacity: 1; }
       .modal input[type="text"]:focus { border-color: var(--accent-cyan); outline: none; }
 
       .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
@@ -562,7 +562,7 @@
         border: 1px solid rgba(167, 139, 250, 0.2);
         background: rgba(167, 139, 250, 0.06);
         font-size: 0.72rem;
-        color: var(--accent-purple);
+        color: #FFFFFF;
         font-weight: 600;
       }
 
@@ -574,7 +574,7 @@
         .topbar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 16px; }
         .grid-kpi { grid-template-columns: repeat(2, 1fr); }
         .node-grid { grid-template-columns: 1fr; }
-        .kpi .value { font-size: 1.6rem; }
+        .kpi .value { font-size: 1.75rem; }
       }
       @media (max-width: 480px) {
         .grid-kpi { grid-template-columns: 1fr; }
@@ -588,6 +588,205 @@
       .controls-row label {
         display: flex; align-items: center; gap: 6px;
         font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;
+      }
+
+      /* ===== NODE CARDS CLICKABLE ===== */
+      .node { cursor: pointer; }
+      .node:active { transform: scale(0.98); }
+
+      /* ===== NODE DETAIL DRAWER ===== */
+      .drawer-backdrop {
+        position: fixed; inset: 0;
+        background: rgba(4, 8, 16, 0.65);
+        backdrop-filter: blur(4px);
+        z-index: 900;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s ease;
+      }
+      .drawer-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .drawer {
+        position: fixed;
+        top: 0; right: 0;
+        width: 420px; max-width: 92vw;
+        height: 100vh;
+        z-index: 910;
+        background: linear-gradient(180deg, rgba(10, 18, 40, 0.97), rgba(6, 12, 28, 0.98));
+        border-left: 1px solid var(--border);
+        backdrop-filter: blur(24px) saturate(1.6);
+        box-shadow: -12px 0 48px rgba(0, 0, 0, 0.5);
+        transform: translateX(100%);
+        transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+      .drawer.open { transform: translateX(0); }
+
+      .drawer-inner {
+        padding: 32px 28px 44px;
+        line-height: 1.72;
+        letter-spacing: 0.02em;
+      }
+
+      .drawer-close {
+        position: absolute; top: 18px; right: 18px;
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: transparent;
+        color: #FFFFFF;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all var(--transition-fast);
+        z-index: 2;
+      }
+      .drawer-close:hover {
+        border-color: rgba(255,255,255,0.2);
+        color: #FFFFFF;
+      }
+
+      .drawer-header {
+        display: flex; align-items: center; gap: 14px;
+        margin-bottom: 32px;
+        padding-right: 40px;
+      }
+      .drawer-icon {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .drawer-title {
+        font-size: 1.38rem; font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #FFFFFF;
+      }
+      .drawer-id {
+        font-family: var(--font-mono); font-size: 0.72rem;
+        color: #FFFFFF; margin-top: 3px;
+        letter-spacing: 0.06em;
+      }
+
+      /* Drawer Sections */
+      .drawer-section {
+        margin-bottom: 32px;
+      }
+      .drawer-section-title {
+        font-size: 0.64rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.14em;
+        color: #FFFFFF;
+        margin-bottom: 18px;
+        padding-bottom: 9px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+
+      /* Live Readings */
+      .drawer-readings {
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+      }
+      .drawer-reading {
+        padding: 20px 10px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255, 255, 255, 0.02);
+        text-align: center;
+        transition: border-color var(--transition-fast);
+      }
+      .drawer-reading:hover { border-color: rgba(255,255,255,0.12); }
+      .drawer-reading .dr-icon { font-size: 1.1rem; margin-bottom: 10px; opacity: 0.7; }
+      .drawer-reading .dr-value {
+        font-family: var(--font-mono);
+        font-size: 2.7rem; font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1.02;
+        color: #FFFFFF;
+      }
+      .drawer-reading .dr-label {
+        font-size: 0.62rem; color: #FFFFFF;
+        margin-top: 9px; text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 500;
+      }
+
+      /* History Table */
+      .drawer-history {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 9px;
+        font-size: 0.84rem;
+      }
+      .drawer-history thead th {
+        text-align: left;
+        padding: 0 12px 8px;
+        color: #FFFFFF;
+        font-weight: 500;
+        font-size: 0.66rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        border: none;
+      }
+      .drawer-history tbody td {
+        padding: 7px 12px;
+        color: #FFFFFF;
+        border: none;
+        font-family: var(--font-mono);
+        font-size: 0.84rem;
+        letter-spacing: 0.03em;
+        line-height: 1.7;
+      }
+      .drawer-history tbody td:first-child {
+        color: #FFFFFF;
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+      }
+      .drawer-history .trend-up,
+      .drawer-history .trend-down,
+      .drawer-history .trend-stable {
+        font-weight: 800;
+        font-size: 0.95em;
+        margin-left: 5px;
+      }
+      .drawer-history .trend-up { color: #FFFFFF; }
+      .drawer-history .trend-down { color: #FFFFFF; }
+      .drawer-history .trend-stable { color: #FFFFFF; }
+
+      /* Advisory */
+      .drawer-advisory {
+        padding: 0;
+        border: none;
+        background: none;
+        border-radius: 0;
+        font-size: 1.16rem;
+        line-height: 1.9;
+        color: #FFFFFF;
+        letter-spacing: 0.03em;
+      }
+      .drawer-advisory .adv-label {
+        display: none;
+      }
+      .drawer-advisory .adv-line {
+        display: block;
+        font-size: 1.16rem;
+        color: #FFFFFF;
+        line-height: 1.9;
+      }
+      .drawer-advisory .adv-line + .adv-line {
+        margin-top: 10px;
+        color: #FFFFFF;
+      }
+
+      /* Drawer responsive */
+      @media (max-width: 480px) {
+        .drawer { width: 100vw; max-width: 100vw; }
+        .drawer-readings { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -689,6 +888,13 @@
           </svg>
         </div>
       </section>
+
+      <!-- ===== NODE DETAIL DRAWER ===== -->
+      <div class="drawer-backdrop" id="drawerBackdrop"></div>
+      <aside class="drawer" id="nodeDrawer">
+        <button class="drawer-close" id="drawerClose" title="Close">✕</button>
+        <div class="drawer-inner" id="drawerContent"></div>
+      </aside>
     </main>
 
     <!-- ===== API KEY MODAL ===== -->
@@ -713,6 +919,54 @@
         { id: 'N-04', name: 'South Bed 1', status: 'healthy',  moisture: 58, temperature: 30, battery: 79, healthText: 'Good condition',          x: 10, y: 2 },
         { id: 'N-05', name: 'South Bed 2', status: 'warning',  moisture: 41, temperature: 32, battery: 67, healthText: 'Monitor nutrients',       x: 12, y: 4 }
       ];
+
+      /* ===== MOCK HISTORY DATA ===== */
+      const nodeHistory = {
+        'N-01': [
+          { time: '10:00 AM', moisture: 60, temperature: 28, battery: 89 },
+          { time: '10:15 AM', moisture: 61, temperature: 28, battery: 89 },
+          { time: '10:30 AM', moisture: 61, temperature: 29, battery: 88 },
+          { time: '10:45 AM', moisture: 62, temperature: 29, battery: 88 },
+          { time: '11:00 AM', moisture: 62, temperature: 29, battery: 88 },
+        ],
+        'N-02': [
+          { time: '10:00 AM', moisture: 44, temperature: 31, battery: 74 },
+          { time: '10:15 AM', moisture: 43, temperature: 32, battery: 73 },
+          { time: '10:30 AM', moisture: 41, temperature: 32, battery: 73 },
+          { time: '10:45 AM', moisture: 40, temperature: 33, battery: 72 },
+          { time: '11:00 AM', moisture: 39, temperature: 33, battery: 72 },
+        ],
+        'N-03': [
+          { time: '10:00 AM', moisture: 34, temperature: 34, battery: 54 },
+          { time: '10:15 AM', moisture: 32, temperature: 35, battery: 53 },
+          { time: '10:30 AM', moisture: 30, temperature: 35, battery: 52 },
+          { time: '10:45 AM', moisture: 28, temperature: 36, battery: 52 },
+          { time: '11:00 AM', moisture: 27, temperature: 36, battery: 51 },
+        ],
+        'N-04': [
+          { time: '10:00 AM', moisture: 56, temperature: 29, battery: 81 },
+          { time: '10:15 AM', moisture: 57, temperature: 30, battery: 80 },
+          { time: '10:30 AM', moisture: 57, temperature: 30, battery: 80 },
+          { time: '10:45 AM', moisture: 58, temperature: 30, battery: 79 },
+          { time: '11:00 AM', moisture: 58, temperature: 30, battery: 79 },
+        ],
+        'N-05': [
+          { time: '10:00 AM', moisture: 45, temperature: 31, battery: 69 },
+          { time: '10:15 AM', moisture: 44, temperature: 31, battery: 68 },
+          { time: '10:30 AM', moisture: 43, temperature: 32, battery: 68 },
+          { time: '10:45 AM', moisture: 42, temperature: 32, battery: 67 },
+          { time: '11:00 AM', moisture: 41, temperature: 32, battery: 67 },
+        ]
+      };
+
+      /* ===== HUMAN-TONE ADVISORIES ===== */
+      const nodeAdvisories = {
+        'N-01': ["Moisture and temperature are both in the ideal range — stable all morning.", "No action needed. Continue the current care routine. 🌱"],
+        'N-02': ["Moisture has been dropping steadily and is now near the lower limit.", "Schedule a watering session soon before it enters the critical zone."],
+        'N-03': ["Moisture has fallen to 27% and temperature is running high at 36°C — signs of heat stress.", "Irrigate this bed immediately to prevent crop damage. ⚠️"],
+        'N-04': ["All readings have been steady this morning with no concerning trends.", "Keep up the current routine — no action needed. 👍"],
+        'N-05': ["Moisture is gradually declining and the nutrient stress signal is active.", "Consider adding compost or a nutrient supplement soon."]
+      };
 
       const messages = {
         English: [
@@ -798,7 +1052,7 @@
 
         /* --- Node cards --- */
         document.getElementById('nodes').innerHTML = filtered.map(n => `
-          <article class="node status-${n.status}">
+          <article class="node status-${n.status}" data-node-id="${n.id}" title="Click to view details">
             <div class="node-head">
               <div>
                 <div class="node-name">${n.name}</div>
@@ -826,6 +1080,15 @@
             <div class="node-health">🌱 ${n.healthText}</div>
           </article>
         `).join('');
+
+        /* Attach click handlers to node cards */
+        document.querySelectorAll('.node[data-node-id]').forEach(card => {
+          card.addEventListener('click', () => {
+            const nodeId = card.dataset.nodeId;
+            const node = nodes.find(n => n.id === nodeId);
+            if (node) openNodeDrawer(node);
+          });
+        });
 
         /* --- Messages --- */
         const lang = languageSelect.value;
@@ -883,7 +1146,7 @@
           <g class="node-dot">
             <circle cx="${start.cx}" cy="${start.cy}" r="14" fill="#a78bfa22" />
             <circle cx="${start.cx}" cy="${start.cy}" r="9" fill="#a78bfa" filter="url(#glow)" />
-            <text x="${start.cx + 18}" y="${start.cy + 4}" fill="#a78bfa" font-weight="600">Control</text>
+            <text x="${start.cx + 18}" y="${start.cy + 4}" fill="#FFFFFF" font-weight="600">Control</text>
           </g>
           ${points}
         `;
@@ -1046,6 +1309,106 @@
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 4000);
       }
+
+      /* ===== NODE DETAIL DRAWER ===== */
+      const drawerBackdrop = document.getElementById('drawerBackdrop');
+      const nodeDrawer = document.getElementById('nodeDrawer');
+      const drawerContent = document.getElementById('drawerContent');
+      const drawerCloseBtn = document.getElementById('drawerClose');
+
+      function openNodeDrawer(node) {
+        const history = nodeHistory[node.id] || [];
+        const advisoryArr = nodeAdvisories[node.id] || ['No advisory available.', ''];
+        const statusIcons = { healthy: '✅', warning: '⚠️', critical: '🚨' };
+
+        function trendClass(curr, prev) {
+          if (curr > prev) return 'trend-up';
+          if (curr < prev) return 'trend-down';
+          return 'trend-stable';
+        }
+        function trendArrow(curr, prev) {
+          if (curr > prev) return '↑';
+          if (curr < prev) return '↓';
+          return '—';
+        }
+
+        const historyRows = history.map((h, i) => {
+          const prev = i > 0 ? history[i - 1] : h;
+          return `
+            <tr>
+              <td>${h.time}</td>
+              <td>${h.moisture}% <span class="${trendClass(h.moisture, prev.moisture)}">${trendArrow(h.moisture, prev.moisture)}</span></td>
+              <td>${h.temperature}°C <span class="${trendClass(h.temperature, prev.temperature)}">${trendArrow(h.temperature, prev.temperature)}</span></td>
+              <td>${h.battery}%</td>
+            </tr>
+          `;
+        }).join('');
+
+        drawerContent.innerHTML = `
+          <div class="drawer-header">
+            <div class="drawer-icon ${node.status}">${statusIcons[node.status] || '📡'}</div>
+            <div>
+              <div class="drawer-title">${node.name}</div>
+              <div class="drawer-id">${node.id} · <span class="pill ${node.status}" style="font-size:0.6rem;">${node.status}</span></div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <div class="drawer-section-title">Live Sensor Readings</div>
+            <div class="drawer-readings">
+              <div class="drawer-reading">
+                <div class="dr-icon">💧</div>
+                <div class="dr-value">${node.moisture}%</div>
+                <div class="dr-label">Moisture</div>
+              </div>
+              <div class="drawer-reading">
+                <div class="dr-icon">🌡️</div>
+                <div class="dr-value">${node.temperature}°C</div>
+                <div class="dr-label">Temperature</div>
+              </div>
+              <div class="drawer-reading">
+                <div class="dr-icon">🔋</div>
+                <div class="dr-value">${node.battery}%</div>
+                <div class="dr-label">Battery</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <div class="drawer-section-title">Recent History</div>
+            <table class="drawer-history">
+              <thead>
+                <tr><th>Time</th><th>Moisture</th><th>Temp</th><th>Battery</th></tr>
+              </thead>
+              <tbody>${historyRows}</tbody>
+            </table>
+          </div>
+
+          <div class="drawer-section">
+            <div class="drawer-section-title">Advisory</div>
+            <div class="drawer-advisory">
+              <span class="adv-line">${advisoryArr[0]}</span>
+              ${advisoryArr[1] ? `<span class="adv-line">${advisoryArr[1]}</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        drawerBackdrop.classList.add('open');
+        nodeDrawer.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeNodeDrawer() {
+        drawerBackdrop.classList.remove('open');
+        nodeDrawer.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      drawerCloseBtn.addEventListener('click', closeNodeDrawer);
+      drawerBackdrop.addEventListener('click', closeNodeDrawer);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeNodeDrawer();
+      });
 
       /* ===== EVENTS ===== */
       statusFilter.addEventListener('change', render);
