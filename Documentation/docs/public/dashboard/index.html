@@ -3,183 +3,768 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plantation Control Center</title>
+    <title>Plantation Control Center — Team Robomanipal</title>
+    <meta name="description" content="Real-time plantation monitoring dashboard with multilingual voice advisories powered by Sarvam AI." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
     <style>
+      /* ===== DESIGN TOKENS ===== */
       :root {
-        --bg: #040811;
-        --bg-soft: #091325;
-        --card: rgba(13, 25, 48, 0.88);
-        --line: rgba(125, 211, 252, 0.26);
-        --text: #e7efff;
-        --muted: #9cb2de;
-        --cyan: #67e8f9;
-        --blue: #60a5fa;
-        --green: #34d399;
-        --amber: #fbbf24;
-        --red: #f87171;
+        --bg-base: #06090f;
+        --bg-elevated: rgba(12, 20, 38, 0.82);
+        --bg-card: rgba(14, 24, 48, 0.72);
+        --bg-card-hover: rgba(18, 32, 60, 0.85);
+        --border: rgba(100, 180, 255, 0.12);
+        --border-hover: rgba(100, 180, 255, 0.28);
+        --glass: blur(18px) saturate(1.5);
+        --text-primary: #eaf0ff;
+        --text-secondary: #8faad4;
+        --text-tertiary: #5a7298;
+        --accent-cyan: #22d3ee;
+        --accent-blue: #3b82f6;
+        --accent-purple: #a78bfa;
+        --accent-green: #34d399;
+        --accent-amber: #fbbf24;
+        --accent-red: #ef4444;
+        --glow-cyan: rgba(34, 211, 238, 0.25);
+        --glow-green: rgba(52, 211, 153, 0.25);
+        --glow-amber: rgba(251, 191, 36, 0.25);
+        --glow-red: rgba(239, 68, 68, 0.25);
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+        --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255,255,255,0.04) inset;
+        --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.5);
+        --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+        --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
       }
 
-      * { box-sizing: border-box; }
+      /* ===== RESET ===== */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       body {
-        margin: 0;
-        font-family: Inter, Segoe UI, Roboto, sans-serif;
-        color: var(--text);
-        background:
-          radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.28), transparent 55%),
-          radial-gradient(circle at 88% 18%, rgba(16, 185, 129, 0.24), transparent 60%),
-          radial-gradient(circle at 50% 100%, rgba(168, 85, 247, 0.18), transparent 62%),
-          linear-gradient(180deg, #040811 0%, #070f20 45%, #081126 100%);
+        font-family: var(--font-body);
+        color: var(--text-primary);
+        background: var(--bg-base);
         min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
       }
 
-      .app { max-width: 1400px; margin: 0 auto; padding: 20px 16px 30px; }
+      /* ===== ANIMATED BACKGROUND ===== */
+      body::before {
+        content: '';
+        position: fixed; inset: 0;
+        background:
+          radial-gradient(ellipse 80% 60% at 10% 5%, rgba(34, 211, 238, 0.12), transparent),
+          radial-gradient(ellipse 70% 50% at 85% 15%, rgba(59, 130, 246, 0.10), transparent),
+          radial-gradient(ellipse 60% 50% at 50% 85%, rgba(167, 139, 250, 0.08), transparent),
+          radial-gradient(ellipse 40% 30% at 70% 60%, rgba(52, 211, 153, 0.06), transparent);
+        pointer-events: none;
+        z-index: 0;
+        animation: bgPulse 12s ease-in-out infinite alternate;
+      }
 
+      @keyframes bgPulse {
+        0% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
+
+      /* ===== GRID NOISE OVERLAY ===== */
+      body::after {
+        content: '';
+        position: fixed; inset: 0;
+        background-image: 
+          linear-gradient(rgba(100, 180, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(100, 180, 255, 0.02) 1px, transparent 1px);
+        background-size: 60px 60px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ===== LAYOUT ===== */
+      .app {
+        position: relative;
+        z-index: 1;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+      }
+
+      /* ===== TOP BAR ===== */
       .topbar {
-        display: flex; justify-content: space-between; align-items: end; gap: 12px;
-        padding: 14px; border-radius: 14px; border: 1px solid var(--line);
-        background: linear-gradient(135deg, rgba(10,22,46,.8), rgba(18,36,67,.62));
-        backdrop-filter: blur(10px); box-shadow: 0 12px 30px rgba(4,8,20,.45);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 24px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        backdrop-filter: var(--glass);
+        box-shadow: var(--shadow-elevated);
+        animation: slideDown 0.6s var(--transition-smooth) both;
       }
 
-      .topbar h1 { margin: 0; font-size: 2rem; }
-      .topbar p { margin: 6px 0 0; color: var(--muted); }
-      .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-      .btn, select {
-        border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
-        background: #0d1b33; color: var(--text); text-decoration: none; cursor: pointer;
+      @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
       }
-      .btn:hover { border-color: var(--cyan); color: var(--cyan); }
-      .btn.primary { background: linear-gradient(135deg, #2563eb, #0891b2); border-color: #60a5fa; }
 
+      .topbar-left { display: flex; align-items: center; gap: 16px; }
+
+      .logo-icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        box-shadow: 0 4px 16px var(--glow-cyan);
+        flex-shrink: 0;
+      }
+
+      .topbar h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #fff 30%, var(--accent-cyan));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .topbar .subtitle {
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        margin-top: 2px;
+      }
+
+      .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+      /* ===== BUTTONS ===== */
+      .btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        font-family: var(--font-body);
+        background: var(--bg-card);
+        color: var(--text-secondary);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all var(--transition-fast);
+        backdrop-filter: blur(8px);
+      }
+      .btn:hover {
+        border-color: var(--border-hover);
+        color: var(--text-primary);
+        background: var(--bg-card-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+        border-color: rgba(34, 211, 238, 0.3);
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 4px 20px var(--glow-cyan);
+      }
+      .btn.primary:hover {
+        box-shadow: 0 6px 28px var(--glow-cyan);
+        transform: translateY(-2px);
+      }
+      .btn.primary.loading {
+        pointer-events: none;
+        opacity: 0.7;
+      }
+      .btn.primary.loading::after {
+        content: '';
+        width: 14px; height: 14px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ===== SELECT ===== */
+      select {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        font-family: var(--font-body);
+        font-weight: 500;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: border-color var(--transition-fast);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238faad4' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 30px;
+      }
+      select:hover, select:focus { border-color: var(--border-hover); outline: none; }
+
+      /* ===== SECTION HEADER ===== */
+      .section-header {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 12px;
+        margin-bottom: 14px;
+      }
+      .section-title {
+        font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .section-title .icon {
+        width: 28px; height: 28px; border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 0.9rem;
+      }
+      .section-subtitle { color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px; }
+
+      /* ===== KPI GRID ===== */
       .grid-kpi {
-        margin: 16px 0; display: grid; gap: 12px;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        margin: 20px 0;
+        display: grid; gap: 14px;
+        grid-template-columns: repeat(5, 1fr);
       }
-      .kpi, .panel {
-        border: 1px solid var(--line); border-radius: 14px; background: var(--card);
-        box-shadow: 0 16px 36px rgba(2,6,23,.45), inset 0 0 0 1px rgba(255,255,255,.03);
+
+      .kpi {
+        position: relative; overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: var(--bg-card);
+        backdrop-filter: var(--glass);
+        box-shadow: var(--shadow-card);
+        padding: 18px 20px;
+        transition: all var(--transition-fast);
+        animation: fadeUp 0.5s var(--transition-smooth) both;
       }
-      .kpi { padding: 14px; }
-      .kpi .label { color: var(--muted); font-size: .85rem; margin: 0; }
-      .kpi .value { margin: 6px 0 0; font-size: 1.7rem; font-weight: 700; }
-      .kpi .value.cyan { color: var(--cyan); text-shadow: 0 0 16px rgba(103,232,249,.3); }
+      .kpi:nth-child(1) { animation-delay: 0.05s; }
+      .kpi:nth-child(2) { animation-delay: 0.10s; }
+      .kpi:nth-child(3) { animation-delay: 0.15s; }
+      .kpi:nth-child(4) { animation-delay: 0.20s; }
+      .kpi:nth-child(5) { animation-delay: 0.25s; }
 
-      .panel { padding: 16px; margin-bottom: 14px; }
-      .panel h2 { margin: 0; }
-      .panel p.sub { margin: 6px 0 12px; color: var(--muted); }
+      .kpi:hover { transform: translateY(-3px); border-color: var(--border-hover); }
 
-      .node-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+      .kpi::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        border-radius: 3px 3px 0 0;
+      }
+      .kpi.accent-cyan::before { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); }
+      .kpi.accent-green::before { background: var(--accent-green); box-shadow: 0 0 12px var(--glow-green); }
+      .kpi.accent-amber::before { background: var(--accent-amber); box-shadow: 0 0 12px var(--glow-amber); }
+      .kpi.accent-red::before { background: var(--accent-red); box-shadow: 0 0 12px var(--glow-red); }
+      .kpi.accent-blue::before { background: var(--accent-blue); }
+
+      .kpi .kpi-top { display: flex; justify-content: space-between; align-items: center; }
+      .kpi .label { color: var(--text-secondary); font-size: 0.78rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+      .kpi .kpi-icon { font-size: 1.2rem; opacity: 0.6; }
+      .kpi .value {
+        margin-top: 8px;
+        font-family: var(--font-mono);
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .kpi .value.cyan { color: var(--accent-cyan); text-shadow: 0 0 20px var(--glow-cyan); }
+      .kpi .value.green { color: var(--accent-green); text-shadow: 0 0 20px var(--glow-green); }
+      .kpi .value.amber { color: var(--accent-amber); text-shadow: 0 0 20px var(--glow-amber); }
+      .kpi .value.red { color: var(--accent-red); text-shadow: 0 0 20px var(--glow-red); }
+
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ===== PANEL ===== */
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        background: var(--bg-card);
+        backdrop-filter: var(--glass);
+        box-shadow: var(--shadow-card);
+        padding: 22px 24px;
+        margin-bottom: 16px;
+        animation: fadeUp 0.6s var(--transition-smooth) both;
+        animation-delay: 0.3s;
+      }
+
+      /* ===== NODE GRID ===== */
+      .node-grid {
+        display: grid; gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      }
+
       .node {
-        border: 1px solid rgba(148,163,184,.24); border-radius: 12px; padding: 12px;
-        background: linear-gradient(145deg, rgba(15,29,55,.95), rgba(11,22,43,.9));
-        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        position: relative;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 16px 18px;
+        background: linear-gradient(160deg, rgba(14, 26, 52, 0.95), rgba(10, 18, 38, 0.92));
+        transition: all var(--transition-fast);
+        overflow: hidden;
       }
-      .node:hover { transform: translateY(-2px); border-color: var(--blue); box-shadow: 0 10px 20px rgba(3,8,24,.5); }
-      .node-head { display: flex; justify-content: space-between; gap: 8px; }
-      .pill { font-size: .7rem; font-weight: 700; border-radius: 999px; padding: 4px 8px; }
-      .healthy { background: rgba(16,185,129,.18); color: var(--green); }
-      .warning { background: rgba(245,158,11,.18); color: var(--amber); }
-      .critical { background: rgba(239,68,68,.18); color: var(--red); }
+      .node::before {
+        content: '';
+        position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+        border-radius: 3px 0 0 3px;
+      }
+      .node.status-healthy::before { background: var(--accent-green); box-shadow: 0 0 8px var(--glow-green); }
+      .node.status-warning::before { background: var(--accent-amber); box-shadow: 0 0 8px var(--glow-amber); }
+      .node.status-critical::before { background: var(--accent-red); box-shadow: 0 0 8px var(--glow-red); }
+      .node.status-critical { animation: pulseGlow 2s ease-in-out infinite; }
 
-      .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-      .messages { margin: 0; padding-left: 18px; }
-      .messages li { margin-bottom: 8px; }
+      @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+        50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
+      }
 
-      .map { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #0a1630; }
-      .route { stroke: #38bdf8; stroke-width: 2.4; stroke-dasharray: 8 6; animation: flow 1.5s linear infinite; }
-      .dot { fill: #34d399; }
-      .control-dot { fill: #c084fc; }
-      .map text { fill: var(--text); font-size: 12px; }
+      .node:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-hover);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+      }
 
-      @keyframes flow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -14; } }
-      @media (max-width: 920px) { .topbar { flex-direction: column; align-items: flex-start; } }
+      .node-head {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 12px;
+      }
+      .node-name { font-weight: 700; font-size: 0.92rem; }
+      .node-id { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 0.7rem; }
+
+      .pill {
+        font-size: 0.65rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        border-radius: 999px; padding: 4px 10px;
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .pill::before {
+        content: '';
+        width: 6px; height: 6px;
+        border-radius: 50%;
+      }
+      .pill.healthy { background: rgba(52, 211, 153, 0.12); color: var(--accent-green); }
+      .pill.healthy::before { background: var(--accent-green); box-shadow: 0 0 6px var(--glow-green); }
+      .pill.warning { background: rgba(251, 191, 36, 0.12); color: var(--accent-amber); }
+      .pill.warning::before { background: var(--accent-amber); box-shadow: 0 0 6px var(--glow-amber); }
+      .pill.critical { background: rgba(239, 68, 68, 0.12); color: var(--accent-red); }
+      .pill.critical::before { background: var(--accent-red); box-shadow: 0 0 6px var(--glow-red); }
+
+      .node-metrics { display: flex; flex-direction: column; gap: 10px; }
+
+      .metric {
+        display: flex; align-items: center; gap: 10px;
+      }
+      .metric-label {
+        font-size: 0.72rem; color: var(--text-secondary);
+        width: 80px; flex-shrink: 0;
+        display: flex; align-items: center; gap: 5px;
+      }
+      .metric-bar-track {
+        flex: 1; height: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 999px; overflow: hidden;
+      }
+      .metric-bar-fill {
+        height: 100%; border-radius: 999px;
+        transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .metric-bar-fill.green { background: linear-gradient(90deg, var(--accent-green), #6ee7b7); }
+      .metric-bar-fill.amber { background: linear-gradient(90deg, var(--accent-amber), #fde68a); }
+      .metric-bar-fill.red { background: linear-gradient(90deg, var(--accent-red), #fca5a5); }
+      .metric-bar-fill.blue { background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); }
+
+      .metric-val {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        width: 42px; text-align: right; flex-shrink: 0;
+      }
+
+      .node-health {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        display: flex; align-items: center; gap: 6px;
+      }
+
+      /* ===== MESSAGES ===== */
+      .messages-list { display: flex; flex-direction: column; gap: 10px; }
+
+      .msg-card {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: rgba(10, 18, 38, 0.6);
+        transition: all var(--transition-fast);
+      }
+      .msg-card:hover {
+        border-color: var(--border-hover);
+        background: rgba(14, 24, 48, 0.8);
+      }
+
+      .msg-number {
+        width: 28px; height: 28px; flex-shrink: 0;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+        display: flex; align-items: center; justify-content: center;
+        font-family: var(--font-mono);
+        font-size: 0.75rem; font-weight: 700;
+      }
+
+      .msg-content { flex: 1; font-size: 0.88rem; line-height: 1.5; color: var(--text-secondary); }
+
+      .msg-speak-btn {
+        flex-shrink: 0;
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-tertiary);
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all var(--transition-fast);
+        font-size: 1rem;
+      }
+      .msg-speak-btn:hover {
+        border-color: var(--accent-cyan);
+        color: var(--accent-cyan);
+        box-shadow: 0 0 12px var(--glow-cyan);
+      }
+      .msg-speak-btn.playing {
+        border-color: var(--accent-cyan);
+        background: rgba(34, 211, 238, 0.1);
+        color: var(--accent-cyan);
+        animation: speakerPulse 1s ease-in-out infinite;
+      }
+      @keyframes speakerPulse {
+        0%, 100% { box-shadow: 0 0 0 rgba(34, 211, 238, 0); }
+        50% { box-shadow: 0 0 16px var(--glow-cyan); }
+      }
+
+      /* ===== MAP ===== */
+      .map-container { position: relative; }
+      .map {
+        width: 100%;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, rgba(8, 16, 32, 0.9), rgba(6, 12, 24, 0.95));
+      }
+      .route-line {
+        stroke: url(#routeGradient);
+        stroke-width: 2.5;
+        stroke-dasharray: 10 6;
+        stroke-linecap: round;
+        animation: flowRoute 2s linear infinite;
+      }
+      @keyframes flowRoute {
+        from { stroke-dashoffset: 0; }
+        to { stroke-dashoffset: -16; }
+      }
+      .node-dot { transition: all var(--transition-fast); }
+      .node-dot:hover { filter: brightness(1.3); }
+      .control-dot { fill: var(--accent-purple); }
+      .map text {
+        fill: var(--text-secondary); font-family: var(--font-body);
+        font-size: 11px; font-weight: 500;
+      }
+
+      /* ===== API KEY MODAL ===== */
+      .modal-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(4, 8, 16, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        align-items: center; justify-content: center;
+        animation: fadeIn 0.3s ease;
+      }
+      .modal-overlay.active { display: flex; }
+
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+      .modal {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        max-width: 460px; width: 90%;
+        box-shadow: var(--shadow-elevated);
+        animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.92); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      .modal h2 {
+        font-size: 1.2rem; font-weight: 700;
+        margin-bottom: 8px;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .modal p { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; margin-bottom: 18px; }
+
+      .modal input[type="text"] {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: rgba(6, 12, 28, 0.8);
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+        transition: border-color var(--transition-fast);
+      }
+      .modal input[type="text"]:focus { border-color: var(--accent-cyan); outline: none; }
+
+      .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+      /* ===== TOAST ===== */
+      .toast {
+        position: fixed; bottom: 24px; right: 24px;
+        padding: 12px 20px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        backdrop-filter: var(--glass);
+        box-shadow: var(--shadow-elevated);
+        font-size: 0.85rem;
+        display: flex; align-items: center; gap: 8px;
+        z-index: 999;
+        animation: slideInRight 0.4s ease, fadeOut 0.4s ease 3.5s forwards;
+      }
+      @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
+      .toast.success { border-color: rgba(52, 211, 153, 0.3); }
+      .toast.error { border-color: rgba(239, 68, 68, 0.3); }
+
+      /* ===== SARVAM BADGE ===== */
+      .sarvam-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        margin-top: 14px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(167, 139, 250, 0.2);
+        background: rgba(167, 139, 250, 0.06);
+        font-size: 0.72rem;
+        color: var(--accent-purple);
+        font-weight: 600;
+      }
+
+      /* ===== RESPONSIVE ===== */
+      @media (max-width: 1100px) {
+        .grid-kpi { grid-template-columns: repeat(3, 1fr); }
+      }
+      @media (max-width: 768px) {
+        .topbar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 16px; }
+        .grid-kpi { grid-template-columns: repeat(2, 1fr); }
+        .node-grid { grid-template-columns: 1fr; }
+        .kpi .value { font-size: 1.6rem; }
+      }
+      @media (max-width: 480px) {
+        .grid-kpi { grid-template-columns: 1fr; }
+        .app { padding: 12px 10px 30px; }
+      }
+
+      /* ===== CONTROLS ROW ===== */
+      .controls-row {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      }
+      .controls-row label {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;
+      }
     </style>
   </head>
   <body>
     <main class="app">
-      <section class="topbar">
-        <div>
-          <h1>Plantation Control Center</h1>
-          <p>Dark full-screen dashboard for monitoring, advisories, and routing.</p>
+      <!-- ===== TOP BAR ===== -->
+      <header class="topbar" id="topbar">
+        <div class="topbar-left">
+          <div class="logo-icon">🌿</div>
+          <div>
+            <h1>Plantation Control Center</h1>
+            <p class="subtitle">Real-time monitoring · Multilingual voice advisories</p>
+          </div>
         </div>
         <div class="actions">
-          <a class="btn" href="/">Home</a>
-          <a class="btn" href="/introduction/overview">Documentation</a>
-          <button id="speak" class="btn primary">Speak Messages</button>
+          <a class="btn" href="/">🏠 Home</a>
+          <a class="btn" href="/introduction/overview">📄 Docs</a>
+          <button id="speak" class="btn primary">🔊 Speak All</button>
         </div>
-      </section>
+      </header>
 
+      <!-- ===== KPIs ===== -->
       <section class="grid-kpi" id="kpis"></section>
 
+      <!-- ===== NODE HEALTH ===== -->
       <section class="panel">
-        <h2>Node Health Overview</h2>
-        <p class="sub">Live status of moisture, temperature, battery, and plant condition.</p>
-        <div class="controls">
-          <label>Status:
-            <select id="statusFilter">
-              <option value="all">All</option>
-              <option value="healthy">Healthy</option>
-              <option value="warning">Warning</option>
-              <option value="critical">Critical</option>
-            </select>
-          </label>
+        <div class="section-header">
+          <div>
+            <div class="section-title">
+              <span class="icon" style="background: rgba(52, 211, 153, 0.12);">📡</span>
+              Node Health Overview
+            </div>
+            <p class="section-subtitle">Live sensor readings across all plantation nodes</p>
+          </div>
+          <div class="controls-row">
+            <label>
+              Filter:
+              <select id="statusFilter">
+                <option value="all">All Nodes</option>
+                <option value="healthy">Healthy</option>
+                <option value="warning">Warning</option>
+                <option value="critical">Critical</option>
+              </select>
+            </label>
+          </div>
         </div>
         <div class="node-grid" id="nodes"></div>
       </section>
 
+      <!-- ===== MESSAGES ===== -->
       <section class="panel">
-        <h2>Multilingual Plant Health Messages</h2>
-        <p class="sub">Localized advisories for the field team.</p>
-        <div class="controls">
-          <label>Language:
-            <select id="language">
-              <option>English</option>
-              <option>Hindi</option>
-              <option>Kannada</option>
-            </select>
-          </label>
+        <div class="section-header">
+          <div>
+            <div class="section-title">
+              <span class="icon" style="background: rgba(167, 139, 250, 0.12);">🗣️</span>
+              Multilingual Health Advisories
+            </div>
+            <p class="section-subtitle">Localized alerts for the field team — with AI voice readout</p>
+          </div>
+          <div class="controls-row">
+            <label>
+              Language:
+              <select id="language">
+                <option value="English">English</option>
+                <option value="Hindi">हिन्दी</option>
+                <option value="Kannada">ಕನ್ನಡ</option>
+              </select>
+            </label>
+          </div>
         </div>
-        <ul class="messages" id="messages"></ul>
+        <div class="messages-list" id="messages"></div>
+        <div class="sarvam-badge">⚡ Voice powered by Sarvam AI — bulbul:v2</div>
       </section>
 
+      <!-- ===== MAP ===== -->
       <section class="panel">
-        <h2>Traversal Map</h2>
-        <p class="sub">Nearest-neighbor route to attend plants efficiently.</p>
-        <svg class="map" viewBox="0 0 760 300" id="map"></svg>
+        <div class="section-header">
+          <div>
+            <div class="section-title">
+              <span class="icon" style="background: rgba(34, 211, 238, 0.12);">🗺️</span>
+              Optimized Traversal Route
+            </div>
+            <p class="section-subtitle">Nearest-neighbor path for efficient field inspection</p>
+          </div>
+        </div>
+        <div class="map-container">
+          <svg class="map" viewBox="0 0 760 320" id="map">
+            <defs>
+              <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#a78bfa" />
+                <stop offset="50%" stop-color="#22d3ee" />
+                <stop offset="100%" stop-color="#34d399" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+          </svg>
+        </div>
       </section>
     </main>
 
+    <!-- ===== API KEY MODAL ===== -->
+    <div class="modal-overlay" id="apiModal">
+      <div class="modal">
+        <h2>🔑 Sarvam AI API Key</h2>
+        <p>Enter your Sarvam AI API key to enable multilingual voice readout. The key is stored locally in your browser and never sent elsewhere.</p>
+        <input type="text" id="apiKeyInput" placeholder="Paste your api-subscription-key here…" autocomplete="off" />
+        <div class="modal-actions">
+          <button class="btn" id="cancelApiKey">Cancel</button>
+          <button class="btn primary" id="saveApiKey">Save & Speak</button>
+        </div>
+      </div>
+    </div>
+
     <script>
+      /* ===== DATA ===== */
       const nodes = [
-        { id: 'N-01', name: 'North Bed 1', status: 'healthy', moisture: 62, temperature: 29, battery: 88, healthText: 'Stable growth', x: 2, y: 4 },
-        { id: 'N-02', name: 'North Bed 2', status: 'warning', moisture: 39, temperature: 33, battery: 72, healthText: 'Low moisture', x: 5, y: 7 },
-        { id: 'N-03', name: 'Central Bed 1', status: 'critical', moisture: 27, temperature: 36, battery: 51, healthText: 'Needs urgent watering', x: 8, y: 6 },
-        { id: 'N-04', name: 'South Bed 1', status: 'healthy', moisture: 58, temperature: 30, battery: 79, healthText: 'Good condition', x: 10, y: 2 },
-        { id: 'N-05', name: 'South Bed 2', status: 'warning', moisture: 41, temperature: 32, battery: 67, healthText: 'Monitor nutrients', x: 12, y: 4 }
+        { id: 'N-01', name: 'North Bed 1', status: 'healthy',  moisture: 62, temperature: 29, battery: 88, healthText: 'Stable growth',          x: 2,  y: 4 },
+        { id: 'N-02', name: 'North Bed 2', status: 'warning',  moisture: 39, temperature: 33, battery: 72, healthText: 'Low moisture',            x: 5,  y: 7 },
+        { id: 'N-03', name: 'Central Bed 1', status: 'critical', moisture: 27, temperature: 36, battery: 51, healthText: 'Needs urgent watering', x: 8,  y: 6 },
+        { id: 'N-04', name: 'South Bed 1', status: 'healthy',  moisture: 58, temperature: 30, battery: 79, healthText: 'Good condition',          x: 10, y: 2 },
+        { id: 'N-05', name: 'South Bed 2', status: 'warning',  moisture: 41, temperature: 32, battery: 67, healthText: 'Monitor nutrients',       x: 12, y: 4 }
       ];
 
       const messages = {
-        English: ['Critical node detected. Irrigate Central Bed 1 immediately.', 'North Bed 2 moisture is below threshold. Schedule watering now.', 'South Bed 2 shows nutrient stress. Add compost.'],
-        Hindi: ['क्रिटिकल नोड मिला है। सेंट्रल बेड 1 को तुरंत पानी दें।', 'नॉर्थ बेड 2 में नमी कम है। अभी सिंचाई करें।', 'साउथ बेड 2 में पोषक तत्व तनाव है। खाद डालें।'],
-        Kannada: ['ಗಂಭೀರ ನೋಡ್ ಕಂಡುಬಂದಿದೆ. ಸೆಂಟ್ರಲ್ ಬೆಡ್ 1ಕ್ಕೆ ತಕ್ಷಣ ನೀರು ಹಾಕಿ.', 'ನಾರ್ಥ್ ಬೆಡ್ 2 ರಲ್ಲಿ ತೇವಾಂಶ ಕಡಿಮೆ ಇದೆ. ಈಗ ನೀರಾವರಿ ಮಾಡಿ.', 'ಸೌತ್ ಬೆಡ್ 2 ನಲ್ಲಿ ಪೋಷಕಾಂಶ ಒತ್ತಡ ಇದೆ. ಗೊಬ್ಬರ ಸೇರಿಸಿ.']
+        English: [
+          'Critical node detected. Irrigate Central Bed 1 immediately.',
+          'North Bed 2 moisture is below threshold. Schedule watering now.',
+          'South Bed 2 shows nutrient stress. Add compost.'
+        ],
+        Hindi: [
+          'क्रिटिकल नोड मिला है। सेंट्रल बेड 1 को तुरंत पानी दें।',
+          'नॉर्थ बेड 2 में नमी कम है। अभी सिंचाई करें।',
+          'साउथ बेड 2 में पोषक तत्व तनाव है। खाद डालें।'
+        ],
+        Kannada: [
+          'ಗಂಭೀರ ನೋಡ್ ಕಂಡುಬಂದಿದೆ. ಸೆಂಟ್ರಲ್ ಬೆಡ್ 1ಕ್ಕೆ ತಕ್ಷಣ ನೀರು ಹಾಕಿ.',
+          'ನಾರ್ಥ್ ಬೆಡ್ 2 ರಲ್ಲಿ ತೇವಾಂಶ ಕಡಿಮೆ ಇದೆ. ಈಗ ನೀರಾವರಿ ಮಾಡಿ.',
+          'ಸೌತ್ ಬೆಡ್ 2 ನಲ್ಲಿ ಪೋಷಕಾಂಶ ಒತ್ತಡ ಇದೆ. ಗೊಬ್ಬರ ಸೇರಿಸಿ.'
+        ]
       };
-      const voiceLang = { English: 'en-US', Hindi: 'hi-IN', Kannada: 'kn-IN' };
 
+      const langCodes = { English: 'en-IN', Hindi: 'hi-IN', Kannada: 'kn-IN' };
+      const browserVoiceLang = { English: 'en-US', Hindi: 'hi-IN', Kannada: 'kn-IN' };
+
+      /* ===== DOM REFS ===== */
       const statusFilter = document.getElementById('statusFilter');
-      const language = document.getElementById('language');
+      const languageSelect = document.getElementById('language');
+      const speakAllBtn = document.getElementById('speak');
+      const apiModal = document.getElementById('apiModal');
+      const apiKeyInput = document.getElementById('apiKeyInput');
+      const saveApiKeyBtn = document.getElementById('saveApiKey');
+      const cancelApiKeyBtn = document.getElementById('cancelApiKey');
+
+      /* ===== HELPERS ===== */
+      function getMoistureColor(v) { return v >= 50 ? 'green' : v >= 35 ? 'amber' : 'red'; }
+      function getTempColor(v) { return v <= 30 ? 'green' : v <= 34 ? 'amber' : 'red'; }
+      function getBatteryColor(v) { return v >= 70 ? 'green' : v >= 40 ? 'amber' : 'red'; }
 
       function nearestRoute(list) {
-        const rem = [...list], out = []; let cur = { x: 0, y: 0 };
+        const rem = [...list], out = [];
+        let cur = { x: 0, y: 0 };
         while (rem.length) {
           let idx = 0, dist = Infinity;
-          rem.forEach((n, i) => { const d = Math.hypot(n.x - cur.x, n.y - cur.y); if (d < dist) { dist = d; idx = i; } });
-          const [next] = rem.splice(idx, 1); out.push(next); cur = next;
+          rem.forEach((n, i) => {
+            const d = Math.hypot(n.x - cur.x, n.y - cur.y);
+            if (d < dist) { dist = d; idx = i; }
+          });
+          const [next] = rem.splice(idx, 1);
+          out.push(next); cur = next;
         }
         return out;
       }
 
+      /* ===== RENDER ===== */
       function render() {
         const filtered = statusFilter.value === 'all' ? nodes : nodes.filter(n => n.status === statusFilter.value);
         const healthy = filtered.filter(n => n.status === 'healthy').length;
@@ -187,46 +772,291 @@
         const critical = filtered.filter(n => n.status === 'critical').length;
         const avg = filtered.length ? Math.round(filtered.reduce((a, n) => a + n.moisture, 0) / filtered.length) : 0;
 
+        /* --- KPIs --- */
         document.getElementById('kpis').innerHTML = `
-          <article class="kpi"><p class="label">Total Nodes</p><p class="value">${filtered.length}</p></article>
-          <article class="kpi"><p class="label">Healthy Nodes</p><p class="value">${healthy}</p></article>
-          <article class="kpi"><p class="label">Warning Nodes</p><p class="value">${warning}</p></article>
-          <article class="kpi"><p class="label">Critical Nodes</p><p class="value">${critical}</p></article>
-          <article class="kpi"><p class="label">Avg Moisture</p><p class="value cyan">${avg}%</p></article>
+          <article class="kpi accent-cyan">
+            <div class="kpi-top"><span class="label">Total Nodes</span><span class="kpi-icon">📡</span></div>
+            <p class="value cyan">${filtered.length}</p>
+          </article>
+          <article class="kpi accent-green">
+            <div class="kpi-top"><span class="label">Healthy</span><span class="kpi-icon">✅</span></div>
+            <p class="value green">${healthy}</p>
+          </article>
+          <article class="kpi accent-amber">
+            <div class="kpi-top"><span class="label">Warning</span><span class="kpi-icon">⚠️</span></div>
+            <p class="value amber">${warning}</p>
+          </article>
+          <article class="kpi accent-red">
+            <div class="kpi-top"><span class="label">Critical</span><span class="kpi-icon">🚨</span></div>
+            <p class="value red">${critical}</p>
+          </article>
+          <article class="kpi accent-blue">
+            <div class="kpi-top"><span class="label">Avg Moisture</span><span class="kpi-icon">💧</span></div>
+            <p class="value cyan">${avg}%</p>
+          </article>
         `;
 
+        /* --- Node cards --- */
         document.getElementById('nodes').innerHTML = filtered.map(n => `
-          <article class="node">
-            <div class="node-head"><strong>${n.name}</strong><span class="pill ${n.status}">${n.status.toUpperCase()}</span></div>
-            <ul>
-              <li><strong>Moisture:</strong> ${n.moisture}%</li>
-              <li><strong>Temperature:</strong> ${n.temperature}°C</li>
-              <li><strong>Battery:</strong> ${n.battery}%</li>
-              <li><strong>Plant Health:</strong> ${n.healthText}</li>
-            </ul>
-          </article>`).join('');
+          <article class="node status-${n.status}">
+            <div class="node-head">
+              <div>
+                <div class="node-name">${n.name}</div>
+                <div class="node-id">${n.id}</div>
+              </div>
+              <span class="pill ${n.status}">${n.status}</span>
+            </div>
+            <div class="node-metrics">
+              <div class="metric">
+                <span class="metric-label">💧 Moisture</span>
+                <div class="metric-bar-track"><div class="metric-bar-fill ${getMoistureColor(n.moisture)}" style="width: ${n.moisture}%"></div></div>
+                <span class="metric-val">${n.moisture}%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">🌡️ Temp</span>
+                <div class="metric-bar-track"><div class="metric-bar-fill ${getTempColor(n.temperature)}" style="width: ${Math.min(n.temperature / 45 * 100, 100)}%"></div></div>
+                <span class="metric-val">${n.temperature}°C</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">🔋 Battery</span>
+                <div class="metric-bar-track"><div class="metric-bar-fill ${getBatteryColor(n.battery)}" style="width: ${n.battery}%"></div></div>
+                <span class="metric-val">${n.battery}%</span>
+              </div>
+            </div>
+            <div class="node-health">🌱 ${n.healthText}</div>
+          </article>
+        `).join('');
 
-        const lang = language.value;
-        document.getElementById('messages').innerHTML = messages[lang].map(m => `<li>${m}</li>`).join('');
+        /* --- Messages --- */
+        const lang = languageSelect.value;
+        document.getElementById('messages').innerHTML = messages[lang].map((m, i) => `
+          <div class="msg-card">
+            <div class="msg-number">${i + 1}</div>
+            <div class="msg-content">${m}</div>
+            <button class="msg-speak-btn" data-index="${i}" title="Speak this message">🔊</button>
+          </div>
+        `).join('');
 
-        const route = nearestRoute(filtered.length ? filtered : nodes).map(n => ({ ...n, cx: 50 + n.x * 50, cy: 280 - n.y * 30 }));
-        const lines = [{ cx: 30, cy: 270 }, ...route];
-        const path = lines.slice(0, -1).map((p, i) => `<line class="route" x1="${p.cx}" y1="${p.cy}" x2="${lines[i+1].cx}" y2="${lines[i+1].cy}" />`).join('');
-        const points = route.map((n, i) => `<circle class="dot" cx="${n.cx}" cy="${n.cy}" r="8"></circle><text x="${n.cx + 12}" y="${n.cy + 5}">${i + 1}. ${n.name}</text>`).join('');
-        document.getElementById('map').innerHTML = `${path}<circle class="control-dot" cx="30" cy="270" r="9"></circle><text x="44" y="275">Control</text>${points}`;
+        /* Attach per-message speak handlers */
+        document.querySelectorAll('.msg-speak-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.index);
+            speakMessage(messages[lang][idx], lang, btn);
+          });
+        });
+
+        /* --- Map --- */
+        const route = nearestRoute(filtered.length ? filtered : nodes).map(n => ({
+          ...n,
+          cx: 60 + n.x * 52,
+          cy: 280 - n.y * 30
+        }));
+        const start = { cx: 35, cy: 280 };
+        const allPts = [start, ...route];
+        const statusColor = { healthy: '#34d399', warning: '#fbbf24', critical: '#ef4444' };
+
+        const lines = allPts.slice(0, -1).map((p, i) =>
+          `<line class="route-line" x1="${p.cx}" y1="${p.cy}" x2="${allPts[i + 1].cx}" y2="${allPts[i + 1].cy}" />`
+        ).join('');
+
+        const points = route.map((n, i) => `
+          <g class="node-dot">
+            <circle cx="${n.cx}" cy="${n.cy}" r="14" fill="${statusColor[n.status]}22" />
+            <circle cx="${n.cx}" cy="${n.cy}" r="7" fill="${statusColor[n.status]}" filter="url(#glow)" />
+            <text x="${n.cx + 18}" y="${n.cy + 4}" font-size="11">${i + 1}. ${n.name}</text>
+          </g>
+        `).join('');
+
+        document.getElementById('map').innerHTML = `
+          <defs>
+            <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#a78bfa" />
+              <stop offset="50%" stop-color="#22d3ee" />
+              <stop offset="100%" stop-color="#34d399" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          ${lines}
+          <g class="node-dot">
+            <circle cx="${start.cx}" cy="${start.cy}" r="14" fill="#a78bfa22" />
+            <circle cx="${start.cx}" cy="${start.cy}" r="9" fill="#a78bfa" filter="url(#glow)" />
+            <text x="${start.cx + 18}" y="${start.cy + 4}" fill="#a78bfa" font-weight="600">Control</text>
+          </g>
+          ${points}
+        `;
       }
 
-      statusFilter.addEventListener('change', render);
-      language.addEventListener('change', render);
-      document.getElementById('speak').addEventListener('click', () => {
+      /* ===== SARVAM AI TTS ===== */
+      let currentAudio = null;
+
+      function getApiKey() {
+        return localStorage.getItem('sarvam_api_key') || '';
+      }
+
+      function showApiKeyModal(callback) {
+        apiModal.classList.add('active');
+        apiKeyInput.value = getApiKey();
+        apiKeyInput.focus();
+
+        const onSave = () => {
+          const key = apiKeyInput.value.trim();
+          if (!key) return;
+          localStorage.setItem('sarvam_api_key', key);
+          apiModal.classList.remove('active');
+          cleanup();
+          showToast('API key saved!', 'success');
+          if (callback) callback(key);
+        };
+
+        const onCancel = () => {
+          apiModal.classList.remove('active');
+          cleanup();
+        };
+
+        const cleanup = () => {
+          saveApiKeyBtn.removeEventListener('click', onSave);
+          cancelApiKeyBtn.removeEventListener('click', onCancel);
+        };
+
+        saveApiKeyBtn.addEventListener('click', onSave);
+        cancelApiKeyBtn.addEventListener('click', onCancel);
+      }
+
+      async function callSarvamTTS(text, lang, apiKey) {
+        const res = await fetch('https://api.sarvam.ai/text-to-speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'api-subscription-key': apiKey
+          },
+          body: JSON.stringify({
+            text: text,
+            target_language_code: langCodes[lang] || 'en-IN',
+            speaker: 'anushka',
+            model: 'bulbul:v2',
+            pitch: 0.0,
+            pace: 1.0,
+            loudness: 1.5
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(`API Error ${res.status}: ${err}`);
+        }
+
+        const data = await res.json();
+        if (!data.audios || !data.audios.length) throw new Error('No audio returned');
+        return data.audios[0]; // base64 audio
+      }
+
+      function playBase64Audio(base64) {
+        return new Promise((resolve, reject) => {
+          if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+          const audio = new Audio(`data:audio/wav;base64,${base64}`);
+          currentAudio = audio;
+          audio.onended = () => { currentAudio = null; resolve(); };
+          audio.onerror = (e) => { currentAudio = null; reject(e); };
+          audio.play();
+        });
+      }
+
+      function fallbackSpeak(text, lang) {
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel();
-        const lang = language.value;
-        const u = new SpeechSynthesisUtterance(messages[lang].join(' '));
-        u.lang = voiceLang[lang] || 'en-US';
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = browserVoiceLang[lang] || 'en-US';
         window.speechSynthesis.speak(u);
+      }
+
+      async function speakMessage(text, lang, btnEl) {
+        const apiKey = getApiKey();
+        if (!apiKey) {
+          showApiKeyModal(async (key) => {
+            await doSpeak(text, lang, key, btnEl);
+          });
+          return;
+        }
+        await doSpeak(text, lang, apiKey, btnEl);
+      }
+
+      async function doSpeak(text, lang, apiKey, btnEl) {
+        if (btnEl) btnEl.classList.add('playing');
+        try {
+          const audio = await callSarvamTTS(text, lang, apiKey);
+          await playBase64Audio(audio);
+        } catch (err) {
+          console.warn('Sarvam TTS failed, using fallback:', err.message);
+          showToast('Voice API failed — using browser fallback', 'error');
+          fallbackSpeak(text, lang);
+        } finally {
+          if (btnEl) btnEl.classList.remove('playing');
+        }
+      }
+
+      /* Speak All */
+      speakAllBtn.addEventListener('click', async () => {
+        const apiKey = getApiKey();
+        const lang = languageSelect.value;
+        const msgs = messages[lang];
+
+        if (!apiKey) {
+          showApiKeyModal(async (key) => {
+            await speakAll(msgs, lang, key);
+          });
+          return;
+        }
+        await speakAll(msgs, lang, apiKey);
       });
 
+      async function speakAll(msgs, lang, apiKey) {
+        speakAllBtn.classList.add('loading');
+        speakAllBtn.textContent = '⏳ Speaking…';
+        const allBtns = document.querySelectorAll('.msg-speak-btn');
+
+        for (let i = 0; i < msgs.length; i++) {
+          if (allBtns[i]) allBtns[i].classList.add('playing');
+          try {
+            const audio = await callSarvamTTS(msgs[i], lang, apiKey);
+            await playBase64Audio(audio);
+          } catch (err) {
+            console.warn('Sarvam TTS failed for message', i, ':', err.message);
+            showToast('Voice API error — falling back', 'error');
+            fallbackSpeak(msgs[i], lang);
+            // small delay for fallback
+            await new Promise(r => setTimeout(r, 2000));
+          }
+          if (allBtns[i]) allBtns[i].classList.remove('playing');
+        }
+
+        speakAllBtn.classList.remove('loading');
+        speakAllBtn.textContent = '🔊 Speak All';
+      }
+
+      /* ===== TOAST ===== */
+      function showToast(msg, type = 'success') {
+        const old = document.querySelector('.toast');
+        if (old) old.remove();
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.innerHTML = `${type === 'success' ? '✅' : '⚠️'} ${msg}`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+      }
+
+      /* ===== EVENTS ===== */
+      statusFilter.addEventListener('change', render);
+      languageSelect.addEventListener('change', render);
+
+      /* Close modal on overlay click */
+      apiModal.addEventListener('click', (e) => {
+        if (e.target === apiModal) apiModal.classList.remove('active');
+      });
+
+      /* ===== INIT ===== */
       render();
     </script>
   </body>
