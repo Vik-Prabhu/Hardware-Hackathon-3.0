@@ -31,3 +31,56 @@ a, button {
   transform: translateY(-4px) !important;
   box-shadow: 0 12px 32px rgba(0,0,0,0.1) !important;
 }
+
+/* Dashboard full-screen mode on /dashboard */
+.page-dashboard .VPNav,
+.page-dashboard .VPLocalNav,
+.page-dashboard .VPDocAside,
+.page-dashboard .VPSidebar {
+  display: none !important;
+}
+
+.page-dashboard .VPContent.has-sidebar {
+  margin-left: 0 !important;
+}
+
+.page-dashboard .VPDoc,
+.page-dashboard .VPDoc .container,
+.page-dashboard .VPDoc .content,
+.page-dashboard .VPDoc .content-container {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.page-dashboard .VPDoc .content {
+  padding: 0 !important;
+}
+
+.page-dashboard .VPDoc.has-aside .content-container {
+  max-width: 100% !important;
+}
+
+.page-dashboard .VPDocFooter {
+  display: none !important;
+}
+
+/* Force dark palette only on dashboard page */
+.page-dashboard {
+  --vp-c-bg: #070b16;
+  --vp-c-bg-soft: #0f1629;
+  --vp-c-bg-alt: #0b1222;
+  --vp-c-divider: rgba(120, 146, 201, 0.28);
+  --vp-c-text-1: #e7efff;
+  --vp-c-text-2: #9cb2de;
+  --vp-c-brand-1: #60a5fa;
+  --vp-c-brand-2: #38bdf8;
+  --vp-c-brand-3: #22d3ee;
+}
+
+.page-dashboard body,
+.page-dashboard .Layout,
+.page-dashboard .VPContent,
+.page-dashboard .VPDoc {
+  background: #070b16 !important;
+  color: var(--vp-c-text-1) !important;
+}

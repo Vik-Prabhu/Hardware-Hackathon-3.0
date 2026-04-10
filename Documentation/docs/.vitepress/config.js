@@ -5,9 +5,7 @@ export default {
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Hardware', link: '/hardware/mechanical' },
-      { text: 'Software', link: '/software/setup' },
-      { text: 'Research', link: '/research/market-research' }
+      { text: 'Dashboard', link: '/dashboard/index.html', target: '_self' }
     ],
     sidebar: [
       {

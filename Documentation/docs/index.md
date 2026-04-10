@@ -3,11 +3,15 @@ layout: home
 
 hero:
   name: "Team Robomanipal"
-  text: "Hardware Hackathon 3.0"
+  text: "Hardware Hackathon 3.0 Documentation"
   tagline: Engineering innovation through modular hardware and intelligent software.
   actions:
     - theme: brand
-      text: Get Started →
+      text: Open Dashboard →
+      link: /dashboard/index.html
+      target: _self
+    - theme: alt
+      text: Project Overview →
       link: /introduction/overview
 
 features:

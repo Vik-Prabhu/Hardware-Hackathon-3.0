@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plantation Control Center</title>
+    <style>
+      :root {
+        --bg: #040811;
+        --bg-soft: #091325;
+        --card: rgba(13, 25, 48, 0.88);
+        --line: rgba(125, 211, 252, 0.26);
+        --text: #e7efff;
+        --muted: #9cb2de;
+        --cyan: #67e8f9;
+        --blue: #60a5fa;
+        --green: #34d399;
+        --amber: #fbbf24;
+        --red: #f87171;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Inter, Segoe UI, Roboto, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% 0%, rgba(59, 130, 246, 0.28), transparent 55%),
+          radial-gradient(circle at 88% 18%, rgba(16, 185, 129, 0.24), transparent 60%),
+          radial-gradient(circle at 50% 100%, rgba(168, 85, 247, 0.18), transparent 62%),
+          linear-gradient(180deg, #040811 0%, #070f20 45%, #081126 100%);
+        min-height: 100vh;
+      }
+
+      .app { max-width: 1400px; margin: 0 auto; padding: 20px 16px 30px; }
+
+      .topbar {
+        display: flex; justify-content: space-between; align-items: end; gap: 12px;
+        padding: 14px; border-radius: 14px; border: 1px solid var(--line);
+        background: linear-gradient(135deg, rgba(10,22,46,.8), rgba(18,36,67,.62));
+        backdrop-filter: blur(10px); box-shadow: 0 12px 30px rgba(4,8,20,.45);
+      }
+
+      .topbar h1 { margin: 0; font-size: 2rem; }
+      .topbar p { margin: 6px 0 0; color: var(--muted); }
+      .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+      .btn, select {
+        border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
+        background: #0d1b33; color: var(--text); text-decoration: none; cursor: pointer;
+      }
+      .btn:hover { border-color: var(--cyan); color: var(--cyan); }
+      .btn.primary { background: linear-gradient(135deg, #2563eb, #0891b2); border-color: #60a5fa; }
+
+      .grid-kpi {
+        margin: 16px 0; display: grid; gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+      .kpi, .panel {
+        border: 1px solid var(--line); border-radius: 14px; background: var(--card);
+        box-shadow: 0 16px 36px rgba(2,6,23,.45), inset 0 0 0 1px rgba(255,255,255,.03);
+      }
+      .kpi { padding: 14px; }
+      .kpi .label { color: var(--muted); font-size: .85rem; margin: 0; }
+      .kpi .value { margin: 6px 0 0; font-size: 1.7rem; font-weight: 700; }
+      .kpi .value.cyan { color: var(--cyan); text-shadow: 0 0 16px rgba(103,232,249,.3); }
+
+      .panel { padding: 16px; margin-bottom: 14px; }
+      .panel h2 { margin: 0; }
+      .panel p.sub { margin: 6px 0 12px; color: var(--muted); }
+
+      .node-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+      .node {
+        border: 1px solid rgba(148,163,184,.24); border-radius: 12px; padding: 12px;
+        background: linear-gradient(145deg, rgba(15,29,55,.95), rgba(11,22,43,.9));
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      }
+      .node:hover { transform: translateY(-2px); border-color: var(--blue); box-shadow: 0 10px 20px rgba(3,8,24,.5); }
+      .node-head { display: flex; justify-content: space-between; gap: 8px; }
+      .pill { font-size: .7rem; font-weight: 700; border-radius: 999px; padding: 4px 8px; }
+      .healthy { background: rgba(16,185,129,.18); color: var(--green); }
+      .warning { background: rgba(245,158,11,.18); color: var(--amber); }
+      .critical { background: rgba(239,68,68,.18); color: var(--red); }
+
+      .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+      .messages { margin: 0; padding-left: 18px; }
+      .messages li { margin-bottom: 8px; }
+
+      .map { width: 100%; border-radius: 12px; border: 1px solid var(--line); background: #0a1630; }
+      .route { stroke: #38bdf8; stroke-width: 2.4; stroke-dasharray: 8 6; animation: flow 1.5s linear infinite; }
+      .dot { fill: #34d399; }
+      .control-dot { fill: #c084fc; }
+      .map text { fill: var(--text); font-size: 12px; }
+
+      @keyframes flow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -14; } }
+      @media (max-width: 920px) { .topbar { flex-direction: column; align-items: flex-start; } }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="topbar">
+        <div>
+          <h1>Plantation Control Center</h1>
+          <p>Dark full-screen dashboard for monitoring, advisories, and routing.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="/">Home</a>
+          <a class="btn" href="/introduction/overview">Documentation</a>
+          <button id="speak" class="btn primary">Speak Messages</button>
+        </div>
+      </section>
+
+      <section class="grid-kpi" id="kpis"></section>
+
+      <section class="panel">
+        <h2>Node Health Overview</h2>
+        <p class="sub">Live status of moisture, temperature, battery, and plant condition.</p>
+        <div class="controls">
+          <label>Status:
+            <select id="statusFilter">
+              <option value="all">All</option>
+              <option value="healthy">Healthy</option>
+              <option value="warning">Warning</option>
+              <option value="critical">Critical</option>
+            </select>
+          </label>
+        </div>
+        <div class="node-grid" id="nodes"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Multilingual Plant Health Messages</h2>
+        <p class="sub">Localized advisories for the field team.</p>
+        <div class="controls">
+          <label>Language:
+            <select id="language">
+              <option>English</option>
+              <option>Hindi</option>
+              <option>Kannada</option>
+            </select>
+          </label>
+        </div>
+        <ul class="messages" id="messages"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>Traversal Map</h2>
+        <p class="sub">Nearest-neighbor route to attend plants efficiently.</p>
+        <svg class="map" viewBox="0 0 760 300" id="map"></svg>
+      </section>
+    </main>
+
+    <script>
+      const nodes = [
+        { id: 'N-01', name: 'North Bed 1', status: 'healthy', moisture: 62, temperature: 29, battery: 88, healthText: 'Stable growth', x: 2, y: 4 },
+        { id: 'N-02', name: 'North Bed 2', status: 'warning', moisture: 39, temperature: 33, battery: 72, healthText: 'Low moisture', x: 5, y: 7 },
+        { id: 'N-03', name: 'Central Bed 1', status: 'critical', moisture: 27, temperature: 36, battery: 51, healthText: 'Needs urgent watering', x: 8, y: 6 },
+        { id: 'N-04', name: 'South Bed 1', status: 'healthy', moisture: 58, temperature: 30, battery: 79, healthText: 'Good condition', x: 10, y: 2 },
+        { id: 'N-05', name: 'South Bed 2', status: 'warning', moisture: 41, temperature: 32, battery: 67, healthText: 'Monitor nutrients', x: 12, y: 4 }
+      ];
+
+      const messages = {
+        English: ['Critical node detected. Irrigate Central Bed 1 immediately.', 'North Bed 2 moisture is below threshold. Schedule watering now.', 'South Bed 2 shows nutrient stress. Add compost.'],
+        Hindi: ['क्रिटिकल नोड मिला है। सेंट्रल बेड 1 को तुरंत पानी दें।', 'नॉर्थ बेड 2 में नमी कम है। अभी सिंचाई करें।', 'साउथ बेड 2 में पोषक तत्व तनाव है। खाद डालें।'],
+        Kannada: ['ಗಂಭೀರ ನೋಡ್ ಕಂಡುಬಂದಿದೆ. ಸೆಂಟ್ರಲ್ ಬೆಡ್ 1ಕ್ಕೆ ತಕ್ಷಣ ನೀರು ಹಾಕಿ.', 'ನಾರ್ಥ್ ಬೆಡ್ 2 ರಲ್ಲಿ ತೇವಾಂಶ ಕಡಿಮೆ ಇದೆ. ಈಗ ನೀರಾವರಿ ಮಾಡಿ.', 'ಸೌತ್ ಬೆಡ್ 2 ನಲ್ಲಿ ಪೋಷಕಾಂಶ ಒತ್ತಡ ಇದೆ. ಗೊಬ್ಬರ ಸೇರಿಸಿ.']
+      };
+      const voiceLang = { English: 'en-US', Hindi: 'hi-IN', Kannada: 'kn-IN' };
+
+      const statusFilter = document.getElementById('statusFilter');
+      const language = document.getElementById('language');
+
+      function nearestRoute(list) {
+        const rem = [...list], out = []; let cur = { x: 0, y: 0 };
+        while (rem.length) {
+          let idx = 0, dist = Infinity;
+          rem.forEach((n, i) => { const d = Math.hypot(n.x - cur.x, n.y - cur.y); if (d < dist) { dist = d; idx = i; } });
+          const [next] = rem.splice(idx, 1); out.push(next); cur = next;
+        }
+        return out;
+      }
+
+      function render() {
+        const filtered = statusFilter.value === 'all' ? nodes : nodes.filter(n => n.status === statusFilter.value);
+        const healthy = filtered.filter(n => n.status === 'healthy').length;
+        const warning = filtered.filter(n => n.status === 'warning').length;
+        const critical = filtered.filter(n => n.status === 'critical').length;
+        const avg = filtered.length ? Math.round(filtered.reduce((a, n) => a + n.moisture, 0) / filtered.length) : 0;
+
+        document.getElementById('kpis').innerHTML = `
+          <article class="kpi"><p class="label">Total Nodes</p><p class="value">${filtered.length}</p></article>
+          <article class="kpi"><p class="label">Healthy Nodes</p><p class="value">${healthy}</p></article>
+          <article class="kpi"><p class="label">Warning Nodes</p><p class="value">${warning}</p></article>
+          <article class="kpi"><p class="label">Critical Nodes</p><p class="value">${critical}</p></article>
+          <article class="kpi"><p class="label">Avg Moisture</p><p class="value cyan">${avg}%</p></article>
+        `;
+
+        document.getElementById('nodes').innerHTML = filtered.map(n => `
+          <article class="node">
+            <div class="node-head"><strong>${n.name}</strong><span class="pill ${n.status}">${n.status.toUpperCase()}</span></div>
+            <ul>
+              <li><strong>Moisture:</strong> ${n.moisture}%</li>
+              <li><strong>Temperature:</strong> ${n.temperature}°C</li>
+              <li><strong>Battery:</strong> ${n.battery}%</li>
+              <li><strong>Plant Health:</strong> ${n.healthText}</li>
+            </ul>
+          </article>`).join('');
+
+        const lang = language.value;
+        document.getElementById('messages').innerHTML = messages[lang].map(m => `<li>${m}</li>`).join('');
+
+        const route = nearestRoute(filtered.length ? filtered : nodes).map(n => ({ ...n, cx: 50 + n.x * 50, cy: 280 - n.y * 30 }));
+        const lines = [{ cx: 30, cy: 270 }, ...route];
+        const path = lines.slice(0, -1).map((p, i) => `<line class="route" x1="${p.cx}" y1="${p.cy}" x2="${lines[i+1].cx}" y2="${lines[i+1].cy}" />`).join('');
+        const points = route.map((n, i) => `<circle class="dot" cx="${n.cx}" cy="${n.cy}" r="8"></circle><text x="${n.cx + 12}" y="${n.cy + 5}">${i + 1}. ${n.name}</text>`).join('');
+        document.getElementById('map').innerHTML = `${path}<circle class="control-dot" cx="30" cy="270" r="9"></circle><text x="44" y="275">Control</text>${points}`;
+      }
+
+      statusFilter.addEventListener('change', render);
+      language.addEventListener('change', render);
+      document.getElementById('speak').addEventListener('click', () => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const lang = language.value;
+        const u = new SpeechSynthesisUtterance(messages[lang].join(' '));
+        u.lang = voiceLang[lang] || 'en-US';
+        window.speechSynthesis.speak(u);
+      });
+
+      render();
+    </script>
+  </body>
+</html>
