@@ -1503,7 +1503,6 @@
         <a class="btn" href="/">🏠 Home</a>
         <a class="btn" href="/introduction/overview">📄 Docs</a>
         <button id="btnOpenTestAi" class="btn" style="border-color: var(--accent-purple); color: var(--accent-purple);">🧪 Test AI Simulator</button>
-        <button id="speak" class="btn primary">🔊 Speak All</button>
       </div>
     </header>
 
@@ -1535,29 +1534,27 @@
       <div class="node-grid" id="nodes"></div>
     </section>
 
-    <!-- ===== MESSAGES ===== -->
+    <!-- ===== AI ADVISORY REPORTS ===== -->
     <section class="panel">
       <div class="section-header">
         <div>
           <div class="section-title">
-            <span class="icon" style="background: rgba(167, 139, 250, 0.12);">🗣️</span>
-            Multilingual Health Advisories
+            <span class="icon" style="background: rgba(167, 139, 250, 0.12);">🤖</span>
+            AI Advisory Reports
           </div>
-          <p class="section-subtitle">Localized alerts for the field team — with AI voice readout</p>
+          <p class="section-subtitle">Latest AI-powered plant health diagnostics per node</p>
         </div>
         <div class="controls-row">
-          <label>
-            Language:
-            <select id="language">
-              <option value="English">English</option>
-              <option value="Hindi">हिन्दी</option>
-              <option value="Kannada">ಕನ್ನಡ</option>
-            </select>
-          </label>
+          <select id="aiNodeSelect" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.85rem;">
+            <option value="">Select Node…</option>
+          </select>
+          <button id="btnFetchAiReport" class="btn primary" style="font-size: 0.85rem;">🤖 Fetch Latest Report</button>
+          <button id="btnRunAiAnalysis" class="btn" style="font-size: 0.85rem; border-color: var(--accent-purple); color: var(--accent-purple);">🚀 Run New Analysis</button>
         </div>
       </div>
-      <div class="messages-list" id="messages"></div>
-      <div class="sarvam-badge">⚡ Voice powered by Sarvam AI — bulbul:v2</div>
+      <div id="aiReportPanel" style="min-height: 120px; padding: 16px;">
+        <div style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 32px 0;">Select a node and click <strong>Fetch Latest Report</strong> or <strong>Run New Analysis</strong> to see AI diagnostics.</div>
+      </div>
     </section>
 
 
@@ -1606,6 +1603,16 @@
          <label style="display:flex; flex-direction:column; font-size:0.8rem; color:var(--text-secondary);">Light Level (lux)
             <input type="number" id="testLight" value="85000" style="margin-top:4px; border:1px solid var(--border); border-radius:4px; padding:6px; background:rgba(0,0,0,0.3); color:#fff;" />
          </label>
+      </div>
+
+      <div style="margin-bottom:16px;">
+         <label style="display:flex; flex-direction:column; font-size:0.8rem; color:var(--text-secondary);">📷 Attach Plant Image (optional)
+            <input type="file" id="testImage" accept="image/*" style="margin-top:6px; font-size:0.8rem; color:var(--text-secondary);" />
+         </label>
+         <div id="testImagePreview" style="display:none; margin-top:8px; align-items:center; gap:10px;">
+            <img id="testImageThumb" style="width:64px; height:64px; object-fit:cover; border-radius:6px; border:2px solid var(--accent-cyan);" />
+            <span id="testImageName" style="font-size:0.75rem; color:var(--text-secondary);"></span>
+         </div>
       </div>
 
       <div id="aiTestOutput" style="display:none; background:rgba(0,0,0,0.4); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border); font-family:var(--font-mono); font-size:0.75rem; color:var(--accent-cyan); margin-bottom:16px; white-space:pre-wrap; max-height:220px; overflow-y:auto;"></div>
@@ -1673,58 +1680,136 @@
       }
     }
 
-    function renderAdvisoryHtml(adv) {
-       if (!adv || (!adv.summary && !adv.problems)) return `<span class="adv-line">AI Output: ${JSON.stringify(adv)}</span>`;
+    function renderAdvisoryHtml(rawData, sentImageUrl) {
+       // Deep-unwrap: proxy chain can nest advisory multiple levels deep
+       // e.g. { status, advisory: { sensor_data, advisory: { summary... } } }
+       let adv = rawData;
+       let sensorInfo = null;
+       let timestamp = null;
+       
+       // Keep peeling until we find the actual advisory (has summary or problems)
+       let current = rawData;
+       for (let depth = 0; depth < 5; depth++) {
+         if (!current || typeof current !== 'object') break;
+         
+         // Grab metadata from any wrapper level
+         if (current.sensor_data) sensorInfo = current.sensor_data;
+         if (current._timestamp) timestamp = current._timestamp;
+         
+         // If this level has the actual advisory fields, use it
+         if (current.summary || current.problems) {
+           adv = current;
+           break;
+         }
+         
+         // Otherwise dig into .advisory
+         if (current.advisory && typeof current.advisory === 'object') {
+           current = current.advisory;
+           adv = current;
+         } else {
+           break;
+         }
+       }
+       
+       // Fallback: extract JSON from markdown code fences in description
+       if (adv && adv.description && typeof adv.description === 'string' && adv.description.includes('```json')) {
+         try {
+           const match = adv.description.match(/```json\s*([\s\S]*?)\s*```/);
+           if (match) {
+             const parsed = JSON.parse(match[1]);
+             if (parsed.summary || parsed.problems) {
+               console.log('[renderAdvisory] Extracted advisory from markdown code block in description');
+               adv = parsed;
+             }
+           }
+         } catch(e) { console.warn('[renderAdvisory] Could not parse JSON from description:', e); }
+       }
+       
+       console.log('[renderAdvisory] adv:', adv, 'sensorInfo:', sensorInfo, 'timestamp:', timestamp);
+       
+       if (!adv || (!adv.summary && !adv.problems)) return `<span class="adv-line">AI Output: ${JSON.stringify(rawData)}</span>`;
        
        let severityColor = "var(--accent-cyan)";
        if (adv.overall_severity === 'warning') severityColor = "#f59e0b";
        if (adv.overall_severity === 'critical') severityColor = "#ef4444";
        if (adv.overall_severity === 'healthy') severityColor = "#10b981";
 
-       let html = `<div style="display:flex; flex-direction:column; gap: 12px; font-size: 0.9rem;">`;
+       let html = `<div style="display:flex; flex-direction:column; gap: 14px; font-size: 0.9rem;">`;
        
+       // Sensor context bar + sent image
+       if (sensorInfo || sentImageUrl) {
+          html += `<div style="display:flex; gap:16px; align-items:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid var(--border); font-size:0.8rem;">`;
+          if (sentImageUrl) {
+             html += `<div style="flex-shrink:0;"><img src="${sentImageUrl}" style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:2px solid var(--accent-cyan);" title="Image sent to AI model" /></div>`;
+          }
+          if (sensorInfo) {
+             html += `<div style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <span>📡 <strong>${sensorInfo.node_id || 'Unknown'}</strong></span>
+                        <span>🌡️ ${sensorInfo.temperature}°C</span>
+                        <span>💨 ${sensorInfo.humidity}%</span>
+                        <span>💧 ${sensorInfo.soil_moisture}%</span>
+                        <span>☀️ ${Number(sensorInfo.light_level).toLocaleString()} lx</span>
+                      </div>`;
+          }
+          html += `</div>`;
+       }
+
+       // Summary + severity badge
        if (adv.summary) {
            html += `<div style="display:flex; align-items:center; gap: 8px;">
-                      ${adv.overall_severity ? `<span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:0.7rem; font-weight:700; color:#fff; background:${severityColor}; text-transform:uppercase;">${adv.overall_severity}</span>` : ''}
-                      <strong style="color:var(--text-primary);">${adv.summary}</strong>
+                      ${adv.overall_severity ? `<span style="display:inline-block; padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700; color:#fff; background:${severityColor}; text-transform:uppercase; letter-spacing:0.5px;">${adv.overall_severity}</span>` : ''}
+                      <strong style="color:var(--text-primary); font-size: 1rem;">${adv.summary}</strong>
                     </div>`;
        }
                 
+       // Description
        if (adv.description) {
-          html += `<div style="color:var(--text-secondary); line-height:1.4;">${adv.description}</div>`;
+          html += `<div style="color:var(--text-secondary); line-height:1.5; padding: 8px 0;">${adv.description}</div>`;
        }
        
+       // Problems
        if (adv.problems && adv.problems.length > 0) {
-          html += `<div style="background:rgba(239,68,68,0.1); border-left:3px solid #ef4444; padding:8px; border-radius:4px;">
-                     <strong style="color:#ef4444; font-size:0.8rem; text-transform:uppercase;">Identified Issues:</strong>
-                     <ul style="margin:4px 0 0 20px; padding:0; color:var(--text-secondary);">`;
+          html += `<div style="background:rgba(239,68,68,0.08); border-left:3px solid #ef4444; padding:12px; border-radius:6px;">
+                     <strong style="color:#ef4444; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px;">⚠️ Identified Issues</strong>
+                     <ul style="margin:8px 0 0 20px; padding:0; color:var(--text-secondary); line-height:1.6;">`;
           adv.problems.forEach(p => {
-             html += `<li><strong>${p.issue}:</strong> ${p.details}</li>`;
+             const sevColor = p.severity === 'critical' ? '#ef4444' : p.severity === 'warning' ? '#f59e0b' : '#10b981';
+             html += `<li style="margin-bottom:4px;"><strong style="color:${sevColor};">${p.issue}</strong> <span style="font-size:0.7rem; opacity:0.7;">[${p.severity}]</span><br/>${p.details}</li>`;
           });
           html += `</ul></div>`;
        }
        
+       // Solutions
        if (adv.solutions && adv.solutions.length > 0) {
-          html += `<div style="background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:8px; border-radius:4px;">
-                     <strong style="color:#10b981; font-size:0.8rem; text-transform:uppercase;">Recommended Solutions:</strong>
-                     <ul style="margin:4px 0 0 20px; padding:0; color:var(--text-secondary);">`;
+          html += `<div style="background:rgba(16,185,129,0.08); border-left:3px solid #10b981; padding:12px; border-radius:6px;">
+                     <strong style="color:#10b981; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px;">✅ Recommended Actions</strong>
+                     <ul style="margin:8px 0 0 20px; padding:0; color:var(--text-secondary); line-height:1.6;">`;
           adv.solutions.forEach(s => {
-             html += `<li><strong>${s.action} <span style="font-size:0.7rem; opacity:0.8;">[${s.urgency}]</span>:</strong> ${s.details}</li>`;
+             const urgColor = s.urgency === 'immediate' ? '#ef4444' : s.urgency === 'within_24h' ? '#f59e0b' : '#10b981';
+             html += `<li style="margin-bottom:4px;"><strong>${s.action}</strong> <span style="font-size:0.7rem; padding:1px 6px; border-radius:8px; background:${urgColor}22; color:${urgColor}; font-weight:600;">${s.urgency}</span><br/>${s.details}</li>`;
           });
           html += `</ul></div>`;
        }
        
+       // Predictions
        if (adv.predictions) {
-          html += `<div style="display:flex; flex-direction:column; gap:4px; font-size:0.85rem; background:rgba(255,255,255,0.02); padding:8px; border-radius:4px;">
+          html += `<div style="display:flex; flex-direction:column; gap:6px; font-size:0.85rem; background:rgba(167,139,250,0.06); padding:12px; border-radius:6px; border-left:3px solid var(--accent-purple);">
                      <strong style="color:var(--accent-purple);">🔮 Forecast</strong>
-                     ${adv.predictions.short_term ? `<div style="color:var(--text-secondary);"><strong>Short Term:</strong> ${adv.predictions.short_term}</div>` : ''}
-                     ${adv.predictions.long_term ? `<div style="color:var(--text-secondary);"><strong>Long Term:</strong> ${adv.predictions.long_term}</div>` : ''}
+                     ${adv.predictions.short_term ? `<div style="color:var(--text-secondary); line-height:1.5;"><strong>Short Term:</strong> ${adv.predictions.short_term}</div>` : ''}
+                     ${adv.predictions.long_term ? `<div style="color:var(--text-secondary); line-height:1.5;"><strong>Long Term:</strong> ${adv.predictions.long_term}</div>` : ''}
                    </div>`;
        }
 
+       // Footer: confidence + timestamp
+       html += `<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:var(--text-secondary); opacity:0.6; padding-top:4px; border-top:1px solid var(--border);">`;
        if (adv.confidence) {
-          html += `<div style="text-align:right; font-size:0.7rem; color:var(--text-secondary); opacity:0.6;">Confidence: ${adv.confidence.toUpperCase()}</div>`;
+          html += `<span>Confidence: <strong style="text-transform:uppercase;">${adv.confidence}</strong></span>`;
        }
+       if (timestamp) {
+          const d = new Date(timestamp);
+          html += `<span>Generated: ${d.toLocaleString()}</span>`;
+       }
+       html += `</div>`;
        
        html += `</div>`;
        return html;
@@ -1791,32 +1876,10 @@
        }
     }
 
-    const messages = {
-      English: [
-        'Critical node detected. Irrigate Central Bed 1 immediately.',
-        'North Bed 2 moisture is below threshold. Schedule watering now.',
-        'South Bed 2 shows nutrient stress. Add compost.'
-      ],
-      Hindi: [
-        'क्रिटिकल नोड मिला है। सेंट्रल बेड 1 को तुरंत पानी दें।',
-        'नॉर्थ बेड 2 में नमी कम है। अभी सिंचाई करें।',
-        'साउथ बेड 2 में पोषक तत्व तनाव है। खाद डालें।'
-      ],
-      Kannada: [
-        'ಗಂಭೀರ ನೋಡ್ ಕಂಡುಬಂದಿದೆ. ಸೆಂಟ್ರಲ್ ಬೆಡ್ 1ಕ್ಕೆ ತಕ್ಷಣ ನೀರು ಹಾಕಿ.',
-        'ನಾರ್ಥ್ ಬೆಡ್ 2 ರಲ್ಲಿ ತೇವಾಂಶ ಕಡಿಮೆ ಇದೆ. ಈಗ ನೀರಾವರಿ ಮಾಡಿ.',
-        'ಸೌತ್ ಬೆಡ್ 2 ನಲ್ಲಿ ಪೋಷಕಾಂಶ ಒತ್ತಡ ಇದೆ. ಗೊಬ್ಬರ ಸೇರಿಸಿ.'
-      ]
-    };
-
-    const langCodes = { English: 'en-IN', Hindi: 'hi-IN', Kannada: 'kn-IN' };
-    const browserVoiceLang = { English: 'en-US', Hindi: 'hi-IN', Kannada: 'kn-IN' };
     const API_BASE = 'http://localhost:8000';
 
     /* ===== DOM REFS ===== */
     const statusFilter = document.getElementById('statusFilter');
-    const languageSelect = document.getElementById('language');
-    const speakAllBtn = document.getElementById('speak');
     const apiModal = document.getElementById('apiModal');
     const apiKeyInput = document.getElementById('apiKeyInput');
     const saveApiKeyBtn = document.getElementById('saveApiKey');
@@ -1912,23 +1975,16 @@
         });
       });
 
-      /* --- Messages --- */
-      const lang = languageSelect.value;
-      document.getElementById('messages').innerHTML = messages[lang].map((m, i) => `
-          <div class="msg-card">
-            <div class="msg-number">${i + 1}</div>
-            <div class="msg-content">${m}</div>
-            <button class="msg-speak-btn" data-index="${i}" title="Speak this message">🔊</button>
-          </div>
-        `).join('');
-
-      /* Attach per-message speak handlers */
-      document.querySelectorAll('.msg-speak-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = parseInt(btn.dataset.index);
-          speakMessage(messages[lang][idx], lang, btn);
+      /* --- Populate AI node selector --- */
+      const aiSelect = document.getElementById('aiNodeSelect');
+      if (aiSelect && aiSelect.options.length <= 1) {
+        filtered.forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n.id;
+          opt.textContent = `${n.name} (${n.id})`;
+          aiSelect.appendChild(opt);
         });
-      });
+      }
 
 
     }
@@ -2041,44 +2097,7 @@
       }
     }
 
-    /* Speak All */
-    speakAllBtn.addEventListener('click', async () => {
-      const apiKey = getApiKey();
-      const lang = languageSelect.value;
-      const msgs = messages[lang];
 
-      if (!apiKey) {
-        showApiKeyModal(async (key) => {
-          await speakAll(msgs, lang, key);
-        });
-        return;
-      }
-      await speakAll(msgs, lang, apiKey);
-    });
-
-    async function speakAll(msgs, lang, apiKey) {
-      speakAllBtn.classList.add('loading');
-      speakAllBtn.textContent = '⏳ Speaking…';
-      const allBtns = document.querySelectorAll('.msg-speak-btn');
-
-      for (let i = 0; i < msgs.length; i++) {
-        if (allBtns[i]) allBtns[i].classList.add('playing');
-        try {
-          const audio = await callSarvamTTS(msgs[i], lang, apiKey);
-          await playBase64Audio(audio);
-        } catch (err) {
-          console.warn('Sarvam TTS failed for message', i, ':', err.message);
-          showToast('Voice API error — falling back', 'error');
-          fallbackSpeak(msgs[i], lang);
-          // small delay for fallback
-          await new Promise(r => setTimeout(r, 2000));
-        }
-        if (allBtns[i]) allBtns[i].classList.remove('playing');
-      }
-
-      speakAllBtn.classList.remove('loading');
-      speakAllBtn.textContent = '🔊 Speak All';
-    }
 
     /* ===== TOAST ===== */
     function showToast(msg, type = 'success') {
@@ -2550,7 +2569,6 @@
 
     /* ===== EVENTS ===== */
     statusFilter.addEventListener('change', render);
-    languageSelect.addEventListener('change', render);
 
     /* Close modal on overlay click */
     apiModal.addEventListener('click', (e) => {
@@ -2577,6 +2595,95 @@
        if (e.target === testModal) testModal.classList.remove('active');
     });
 
+    /* ===== AI REPORT PANEL HANDLERS ===== */
+    document.getElementById('btnFetchAiReport').addEventListener('click', async () => {
+      const nodeId = document.getElementById('aiNodeSelect').value;
+      const panel = document.getElementById('aiReportPanel');
+      if (!nodeId) { panel.innerHTML = '<div style="color:var(--accent-red); text-align:center; padding:16px;">⚠️ Please select a node first.</div>'; return; }
+
+      panel.innerHTML = '<div class="photo-loading">Fetching latest AI report for ' + nodeId + '...</div>';
+      try {
+        const resp = await fetch(`${API_BASE}/node/${nodeId}/advisory`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        panel.innerHTML = renderAdvisoryHtml(data);
+      } catch (err) {
+        panel.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding:24px;">No AI report stored yet for ' + nodeId + '. Click <strong>Run New Analysis</strong> to generate one.</div>';
+      }
+    });
+
+    document.getElementById('btnRunAiAnalysis').addEventListener('click', async () => {
+      const nodeId = document.getElementById('aiNodeSelect').value;
+      const panel = document.getElementById('aiReportPanel');
+      const btn = document.getElementById('btnRunAiAnalysis');
+      if (!nodeId) { panel.innerHTML = '<div style="color:var(--accent-red); text-align:center; padding:16px;">⚠️ Please select a node first.</div>'; return; }
+
+      const node = nodes.find(n => n.id === nodeId);
+      btn.textContent = '⏳ Running...';
+      btn.classList.add('loading');
+      panel.innerHTML = '<div class="photo-loading">Running AI analysis for ' + nodeId + ' (this may take 1-3 mins)...</div>';
+
+      const formData = new FormData();
+      formData.append('node_id', nodeId);
+      formData.append('temperature', node ? Math.round(node.temperature) : 30);
+      formData.append('humidity', node ? Math.round(node.humidity) : 50);
+      formData.append('soil_moisture', node ? Math.round(node.moisture) : 40);
+      formData.append('light_level', node ? Math.round(node.light) : 10000);
+
+       // Attach the latest photo for camera nodes (e.g. N-01)
+      let sentImageUrl = null;
+      if (node && node.hasCamera) {
+        try {
+          panel.innerHTML = '<div class="photo-loading">Fetching latest photo for ' + nodeId + '...</div>';
+          const photosResp = await fetch(`${API_BASE}/node/${nodeId}/photos`);
+          if (photosResp.ok) {
+            const photos = await photosResp.json();
+            if (photos.length > 0) {
+              const latestPhoto = photos[0]; // photos are ordered newest first
+              sentImageUrl = `${API_BASE}/photos/${nodeId}/${latestPhoto.filename}`;
+              const imgResp = await fetch(sentImageUrl);
+              if (imgResp.ok) {
+                const blob = await imgResp.blob();
+                formData.append('image', blob, 'snapshot.jpg');
+                console.log('[AI] Attached image:', latestPhoto.filename);
+              }
+            }
+          }
+          panel.innerHTML = '<div class="photo-loading">Running AI analysis for ' + nodeId + ' with photo (this may take 1-3 mins)...</div>';
+        } catch (imgErr) {
+          console.warn('Could not attach image, continuing without it:', imgErr);
+        }
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE}/api/analyze`, { method: 'POST', body: formData });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        const adv = data.advisory || data;
+        panel.innerHTML = renderAdvisoryHtml(adv, sentImageUrl);
+      } catch (err) {
+        panel.innerHTML = '<div style="color:var(--accent-red); text-align:center; padding:16px;">❌ Analysis failed: ' + err.message + '</div>';
+      } finally {
+        btn.textContent = '🚀 Run New Analysis';
+        btn.classList.remove('loading');
+      }
+    });
+
+    /* Image preview in test modal */
+    document.getElementById('testImage').addEventListener('change', (e) => {
+      const preview = document.getElementById('testImagePreview');
+      const thumb = document.getElementById('testImageThumb');
+      const nameEl = document.getElementById('testImageName');
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        thumb.src = URL.createObjectURL(file);
+        nameEl.textContent = `${file.name} (${Math.round(file.size/1024)} KB)`;
+        preview.style.display = 'flex';
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+
     runAiTest.addEventListener('click', async () => {
        runAiTest.textContent = '⏳ Sending POST...';
        runAiTest.classList.add('loading');
@@ -2590,6 +2697,13 @@
        formData.append('humidity', document.getElementById('testHum').value);
        formData.append('soil_moisture', document.getElementById('testMoist').value);
        formData.append('light_level', document.getElementById('testLight').value);
+
+       // Attach image if selected
+       const testImgInput = document.getElementById('testImage');
+       if (testImgInput.files && testImgInput.files[0]) {
+         formData.append('image', testImgInput.files[0], testImgInput.files[0].name);
+         aiTestOutput.innerHTML += '\nAttaching image: ' + testImgInput.files[0].name + ' (' + Math.round(testImgInput.files[0].size/1024) + ' KB)';
+       }
 
        try {
           const resp = await fetch(`${API_BASE}/api/analyze`, {

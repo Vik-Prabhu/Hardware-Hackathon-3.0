@@ -20,12 +20,51 @@ import json
 from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+import re
+
 from database import get_connection, init_db
 
 load_dotenv()
 AI_SERVER_URL = os.getenv("AI_SERVER_URL", "http://192.168.236.84:8000")
 
 PHOTOS_DIR = Path(__file__).parent / "photos"
+
+
+def clean_advisory_response(advisory_json):
+    """Post-process the AI server response to extract clean advisory JSON.
+    
+    The AI model sometimes returns the advisory JSON wrapped in markdown
+    code fences (```json ... ```) inside the description field. This function
+    detects that pattern and extracts the proper structured advisory.
+    """
+    if not isinstance(advisory_json, dict):
+        return advisory_json
+    
+    # Dig into nested 'advisory' wrapper if present
+    inner = advisory_json.get("advisory", advisory_json)
+    if isinstance(inner, dict):
+        desc = inner.get("description", "")
+    else:
+        return advisory_json
+    
+    # Check if description contains a JSON code block
+    if isinstance(desc, str) and "```json" in desc:
+        try:
+            # Extract JSON from markdown code fences
+            match = re.search(r'```json\s*([\s\S]*?)\s*```', desc)
+            if match:
+                parsed = json.loads(match.group(1))
+                if isinstance(parsed, dict) and ("summary" in parsed or "problems" in parsed):
+                    print(f"[AI Cleanup] Extracted structured advisory from markdown code block")
+                    # Replace the inner advisory with the parsed one
+                    if "advisory" in advisory_json and isinstance(advisory_json["advisory"], dict):
+                        advisory_json["advisory"] = parsed
+                    else:
+                        advisory_json = parsed
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"[AI Cleanup] Failed to parse JSON from description: {e}")
+    
+    return advisory_json
 
 # Track the last known IP address for each node (dynamic IP support)
 NODE_IPS = {}
@@ -381,26 +420,50 @@ async def analyze_form_data(
     try:
         timeout = aiohttp.ClientTimeout(total=300)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            # We use a standard dictionary to accurately mimic `requests.post(url, data=data)`
-            payload = {
-                'node_id': str(node_id),
-                'temperature': str(int(float(sensor_data.get('temperature', 0)))),
-                'humidity': str(int(float(sensor_data.get('humidity', 0)))),
-                'soil_moisture': str(int(float(sensor_data.get('soil_moisture', 0)))),
-                'light_level': str(int(float(sensor_data.get('light_level', 0))))
-            }
-            
-            async with session.post(f"{AI_SERVER_URL}/api/analyze", data=payload) as resp:
-                if resp.status == 422:
-                    # Log the exact validation error the friend's laptop throws
-                    print("[AI Proxy] 422 Error Details:", await resp.text())
-                resp.raise_for_status()
-                advisory_json = await resp.json()
+            if image_b64:
+                # Use multipart FormData to forward the image
+                form_data = aiohttp.FormData()
+                form_data.add_field('node_id', str(node_id))
+                form_data.add_field('temperature', str(int(float(sensor_data.get('temperature', 0)))))
+                form_data.add_field('humidity', str(int(float(sensor_data.get('humidity', 0)))))
+                form_data.add_field('soil_moisture', str(int(float(sensor_data.get('soil_moisture', 0)))))
+                form_data.add_field('light_level', str(int(float(sensor_data.get('light_level', 0)))))
+                # Re-read the image from the upload
+                await image.seek(0)
+                img_bytes = await image.read()
+                # Generate filename in the format: N-01_2026-04-11T09-44-12.480248.jpg
+                ts_str = datetime.utcnow().isoformat().replace(":", "-")
+                img_filename = f"{node_id}_{ts_str}.jpg"
+                form_data.add_field('image', img_bytes, filename=img_filename, content_type='image/jpeg')
+                print(f"[AI Proxy] Sending analysis for {node_id} WITH image ({len(img_bytes)} bytes) as {img_filename}")
+                async with session.post(f"{AI_SERVER_URL}/api/analyze", data=form_data) as resp:
+                    if resp.status == 422:
+                        print("[AI Proxy] 422 Error Details:", await resp.text())
+                    resp.raise_for_status()
+                    advisory_json = await resp.json()
+            else:
+                # No image — use simple url-encoded form data
+                payload = {
+                    'node_id': str(node_id),
+                    'temperature': str(int(float(sensor_data.get('temperature', 0)))),
+                    'humidity': str(int(float(sensor_data.get('humidity', 0)))),
+                    'soil_moisture': str(int(float(sensor_data.get('soil_moisture', 0)))),
+                    'light_level': str(int(float(sensor_data.get('light_level', 0))))
+                }
+                print(f"[AI Proxy] Sending analysis for {node_id} without image")
+                async with session.post(f"{AI_SERVER_URL}/api/analyze", data=payload) as resp:
+                    if resp.status == 422:
+                        print("[AI Proxy] 422 Error Details:", await resp.text())
+                    resp.raise_for_status()
+                    advisory_json = await resp.json()
     except Exception as e:
         print(f"[AI Server Error] Proxying for {node_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+    # Clean up: extract JSON from markdown code fences if needed
+    advisory_json = clean_advisory_response(advisory_json)
         
-    # Save the advisory logic if you want to track it
+    # Save the advisory
     ts = sensor_data["timestamp"]
     conn = get_connection()
     conn.execute(
@@ -469,6 +532,9 @@ async def run_node_analysis(node_id: str):
     except Exception as e:
         print(f"[AI Server Error] Node {node_id}: {e}")
         advisory_json = {"status": "error", "message": str(e)}
+    
+    # Clean up: extract JSON from markdown code fences if needed
+    advisory_json = clean_advisory_response(advisory_json)
         
     # Save advisory to DB
     conn = get_connection()
