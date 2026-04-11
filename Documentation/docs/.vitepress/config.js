@@ -11,8 +11,8 @@ export default {
       {
         text: 'Introduction',
         items: [
-          { text: 'Overview', link: '/introduction/overview' },
-          { text: 'Team background', link: '/introduction/team' }
+          { text: 'Market Research', link: '/research/market-research' },
+          { text: 'Case Study', link: '/research/case-study' }
         ]
       },
       {
@@ -29,13 +29,6 @@ export default {
           { text: 'Setup & Installation', link: '/software/setup' },
           { text: 'Code Structure', link: '/software/code' },
           { text: 'Communication Protocols', link: '/software/protocols' }
-        ]
-      },
-      {
-        text: 'Market Research & Case Study',
-        items: [
-          { text: 'Market Research', link: '/research/market-research' },
-          { text: 'Case Study', link: '/research/case-study' }
         ]
       },
       {

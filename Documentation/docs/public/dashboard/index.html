@@ -1,1033 +1,1699 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plantation Control Center — Team Robomanipal</title>
-    <meta name="description" content="Real-time plantation monitoring dashboard with multilingual voice advisories powered by Sarvam AI." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-    <style>
-      /* ===== DESIGN TOKENS ===== */
-      :root {
-        --bg-base: #06090f;
-        --bg-elevated: rgba(12, 20, 38, 0.82);
-        --bg-card: rgba(14, 24, 48, 0.72);
-        --bg-card-hover: rgba(18, 32, 60, 0.85);
-        --border: rgba(100, 180, 255, 0.12);
-        --border-hover: rgba(100, 180, 255, 0.28);
-        --glass: blur(18px) saturate(1.5);
-        --text-primary: #FFFFFF;
-        --text-secondary: #FFFFFF;
-        --text-tertiary: #FFFFFF;
-        --accent-cyan: #22d3ee;
-        --accent-blue: #3b82f6;
-        --accent-purple: #a78bfa;
-        --accent-green: #34d399;
-        --accent-amber: #fbbf24;
-        --accent-red: #ef4444;
-        --glow-cyan: rgba(34, 211, 238, 0.25);
-        --glow-green: rgba(52, 211, 153, 0.25);
-        --glow-amber: rgba(251, 191, 36, 0.25);
-        --glow-red: rgba(239, 68, 68, 0.25);
-        --radius-sm: 10px;
-        --radius-md: 14px;
-        --radius-lg: 20px;
-        --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255,255,255,0.04) inset;
-        --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.5);
-        --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-        --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-      }
 
-      /* ===== RESET ===== */
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plantation Control Center — Team Robomanipal</title>
+  <meta name="description"
+    content="Real-time plantation monitoring dashboard with multilingual voice advisories powered by Sarvam AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ===== DESIGN TOKENS ===== */
+    :root {
+      --bg-base: #06090f;
+      --bg-elevated: rgba(12, 20, 38, 0.82);
+      --bg-card: rgba(14, 24, 48, 0.72);
+      --bg-card-hover: rgba(18, 32, 60, 0.85);
+      --border: rgba(100, 180, 255, 0.12);
+      --border-hover: rgba(100, 180, 255, 0.28);
+      --glass: blur(18px) saturate(1.5);
+      --text-primary: #FFFFFF;
+      --text-secondary: #FFFFFF;
+      --text-tertiary: #FFFFFF;
+      --accent-cyan: #22d3ee;
+      --accent-blue: #3b82f6;
+      --accent-purple: #a78bfa;
+      --accent-green: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-red: #ef4444;
+      --glow-cyan: rgba(34, 211, 238, 0.25);
+      --glow-green: rgba(52, 211, 153, 0.25);
+      --glow-amber: rgba(251, 191, 36, 0.25);
+      --glow-red: rgba(239, 68, 68, 0.25);
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+      --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.5);
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
 
-      body {
-        font-family: var(--font-body);
-        color: var(--text-primary);
-        background: var(--bg-base);
-        min-height: 100vh;
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-      }
+    /* ===== RESET ===== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-      /* ===== ANIMATED BACKGROUND ===== */
-      body::before {
-        content: '';
-        position: fixed; inset: 0;
-        background:
-          radial-gradient(ellipse 80% 60% at 10% 5%, rgba(34, 211, 238, 0.12), transparent),
-          radial-gradient(ellipse 70% 50% at 85% 15%, rgba(59, 130, 246, 0.10), transparent),
-          radial-gradient(ellipse 60% 50% at 50% 85%, rgba(167, 139, 250, 0.08), transparent),
-          radial-gradient(ellipse 40% 30% at 70% 60%, rgba(52, 211, 153, 0.06), transparent);
-        pointer-events: none;
-        z-index: 0;
-        animation: bgPulse 12s ease-in-out infinite alternate;
-      }
+    body {
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      background: var(--bg-base);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-      @keyframes bgPulse {
-        0% { opacity: 0.7; }
-        100% { opacity: 1; }
-      }
+    /* ===== ANIMATED BACKGROUND ===== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 5%, rgba(34, 211, 238, 0.12), transparent),
+        radial-gradient(ellipse 70% 50% at 85% 15%, rgba(59, 130, 246, 0.10), transparent),
+        radial-gradient(ellipse 60% 50% at 50% 85%, rgba(167, 139, 250, 0.08), transparent),
+        radial-gradient(ellipse 40% 30% at 70% 60%, rgba(52, 211, 153, 0.06), transparent);
+      pointer-events: none;
+      z-index: 0;
+      animation: bgPulse 12s ease-in-out infinite alternate;
+    }
 
-      /* ===== GRID NOISE OVERLAY ===== */
-      body::after {
-        content: '';
-        position: fixed; inset: 0;
-        background-image: 
-          linear-gradient(rgba(100, 180, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(100, 180, 255, 0.02) 1px, transparent 1px);
-        background-size: 60px 60px;
-        pointer-events: none;
-        z-index: 0;
-      }
-
-      /* ===== LAYOUT ===== */
-      .app {
-        position: relative;
-        z-index: 1;
-        max-width: 1440px;
-        margin: 0 auto;
-        padding: 24px 20px 40px;
-      }
-
-      /* ===== TOP BAR ===== */
-      .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        padding: 18px 24px;
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--border);
-        background: var(--bg-elevated);
-        backdrop-filter: var(--glass);
-        box-shadow: var(--shadow-elevated);
-        animation: slideDown 0.6s var(--transition-smooth) both;
-      }
-
-      @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .topbar-left { display: flex; align-items: center; gap: 16px; }
-
-      .logo-icon {
-        width: 44px; height: 44px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.4rem;
-        box-shadow: 0 4px 16px var(--glow-cyan);
-        flex-shrink: 0;
-      }
-
-      .topbar h1 {
-        font-size: 1.5rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        color: #FFFFFF;
-      }
-
-      .topbar .subtitle {
-        color: var(--text-secondary);
-        font-size: 0.82rem;
-        margin-top: 2px;
-      }
-
-      .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-      /* ===== BUTTONS ===== */
-      .btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 8px 14px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        font-family: var(--font-body);
-        background: var(--bg-card);
-        color: var(--text-secondary);
-        cursor: pointer;
-        text-decoration: none;
-        transition: all var(--transition-fast);
-        backdrop-filter: blur(8px);
-      }
-      .btn:hover {
-        border-color: var(--border-hover);
-        color: var(--text-primary);
-        background: var(--bg-card-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      }
-      .btn.primary {
-        background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-        border-color: rgba(34, 211, 238, 0.3);
-        color: #fff;
-        font-weight: 700;
-        box-shadow: 0 4px 20px var(--glow-cyan);
-      }
-      .btn.primary:hover {
-        box-shadow: 0 6px 28px var(--glow-cyan);
-        transform: translateY(-2px);
-      }
-      .btn.primary.loading {
-        pointer-events: none;
+    @keyframes bgPulse {
+      0% {
         opacity: 0.7;
       }
-      .btn.primary.loading::after {
-        content: '';
-        width: 14px; height: 14px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
 
-      /* ===== SELECT ===== */
-      select {
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 8px 12px;
-        font-size: 0.82rem;
-        font-family: var(--font-body);
-        font-weight: 500;
-        background: var(--bg-card);
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: border-color var(--transition-fast);
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238faad4' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-        padding-right: 30px;
-      }
-      select:hover, select:focus { border-color: var(--border-hover); outline: none; }
-
-      /* ===== SECTION HEADER ===== */
-      .section-header {
-        display: flex; justify-content: space-between; align-items: center;
-        flex-wrap: wrap; gap: 12px;
-        margin-bottom: 14px;
-      }
-      .section-title {
-        font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em;
-        display: flex; align-items: center; gap: 8px;
-      }
-      .section-title .icon {
-        width: 28px; height: 28px; border-radius: 8px;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 0.9rem;
-      }
-      .section-subtitle { color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px; }
-
-      /* ===== KPI GRID ===== */
-      .grid-kpi {
-        margin: 20px 0;
-        display: grid; gap: 14px;
-        grid-template-columns: repeat(5, 1fr);
-      }
-
-      .kpi {
-        position: relative; overflow: hidden;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        background: var(--bg-card);
-        backdrop-filter: var(--glass);
-        box-shadow: var(--shadow-card);
-        padding: 18px 20px;
-        transition: all var(--transition-fast);
-        animation: fadeUp 0.5s var(--transition-smooth) both;
-      }
-      .kpi:nth-child(1) { animation-delay: 0.05s; }
-      .kpi:nth-child(2) { animation-delay: 0.10s; }
-      .kpi:nth-child(3) { animation-delay: 0.15s; }
-      .kpi:nth-child(4) { animation-delay: 0.20s; }
-      .kpi:nth-child(5) { animation-delay: 0.25s; }
-
-      .kpi:hover { transform: translateY(-3px); border-color: var(--border-hover); }
-
-      .kpi::before {
-        content: '';
-        position: absolute; top: 0; left: 0; right: 0; height: 3px;
-        border-radius: 3px 3px 0 0;
-      }
-      .kpi.accent-cyan::before { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); }
-      .kpi.accent-green::before { background: var(--accent-green); box-shadow: 0 0 12px var(--glow-green); }
-      .kpi.accent-amber::before { background: var(--accent-amber); box-shadow: 0 0 12px var(--glow-amber); }
-      .kpi.accent-red::before { background: var(--accent-red); box-shadow: 0 0 12px var(--glow-red); }
-      .kpi.accent-blue::before { background: var(--accent-blue); }
-
-      .kpi .kpi-top { display: flex; justify-content: space-between; align-items: center; }
-      .kpi .label { color: var(--text-secondary); font-size: 0.78rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
-      .kpi .kpi-icon { font-size: 1.2rem; opacity: 0.6; }
-      .kpi .value {
-        margin-top: 8px;
-        font-family: var(--font-mono);
-        font-size: 2.2rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        line-height: 1;
-        color: #FFFFFF;
-      }
-      .kpi .value.cyan { color: #FFFFFF; }
-      .kpi .value.green { color: #FFFFFF; }
-      .kpi .value.amber { color: #FFFFFF; }
-      .kpi .value.red { color: #FFFFFF; }
-
-      @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(16px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      /* ===== PANEL ===== */
-      .panel {
-        border: 1px solid var(--border);
-        border-radius: var(--radius-lg);
-        background: var(--bg-card);
-        backdrop-filter: var(--glass);
-        box-shadow: var(--shadow-card);
-        padding: 22px 24px;
-        margin-bottom: 16px;
-        animation: fadeUp 0.6s var(--transition-smooth) both;
-        animation-delay: 0.3s;
-      }
-
-      /* ===== NODE GRID ===== */
-      .node-grid {
-        display: grid; gap: 12px;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      }
-
-      .node {
-        position: relative;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: 16px 18px;
-        background: linear-gradient(160deg, rgba(14, 26, 52, 0.95), rgba(10, 18, 38, 0.92));
-        transition: all var(--transition-fast);
-        overflow: hidden;
-      }
-      .node::before {
-        content: '';
-        position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
-        border-radius: 3px 0 0 3px;
-      }
-      .node.status-healthy::before { background: var(--accent-green); box-shadow: 0 0 8px var(--glow-green); }
-      .node.status-warning::before { background: var(--accent-amber); box-shadow: 0 0 8px var(--glow-amber); }
-      .node.status-critical::before { background: var(--accent-red); box-shadow: 0 0 8px var(--glow-red); }
-      .node.status-critical { animation: pulseGlow 2s ease-in-out infinite; }
-
-      @keyframes pulseGlow {
-        0%, 100% { box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
-        50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
-      }
-
-      .node:hover {
-        transform: translateY(-3px);
-        border-color: var(--border-hover);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-      }
-
-      .node-head {
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 12px;
-      }
-      .node-name { font-weight: 800; font-size: 1rem; color: #FFFFFF; }
-      .node-id { color: #FFFFFF; font-family: var(--font-mono); font-size: 0.7rem; }
-
-      .pill {
-        font-size: 0.65rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.06em;
-        border-radius: 999px; padding: 4px 10px;
-        display: inline-flex; align-items: center; gap: 4px;
-      }
-      .pill::before {
-        content: '';
-        width: 6px; height: 6px;
-        border-radius: 50%;
-      }
-      .pill.healthy { background: rgba(52, 211, 153, 0.12); color: #FFFFFF; }
-      .pill.healthy::before { background: var(--accent-green); box-shadow: 0 0 6px var(--glow-green); }
-      .pill.warning { background: rgba(251, 191, 36, 0.12); color: #FFFFFF; }
-      .pill.warning::before { background: var(--accent-amber); box-shadow: 0 0 6px var(--glow-amber); }
-      .pill.critical { background: rgba(239, 68, 68, 0.12); color: #FFFFFF; }
-      .pill.critical::before { background: var(--accent-red); box-shadow: 0 0 6px var(--glow-red); }
-
-      .node-metrics { display: flex; flex-direction: column; gap: 10px; }
-
-      .metric {
-        display: flex; align-items: center; gap: 10px;
-      }
-      .metric-label {
-        font-size: 0.78rem; color: #FFFFFF;
-        width: 80px; flex-shrink: 0;
-        display: flex; align-items: center; gap: 5px;
-      }
-      .metric-bar-track {
-        flex: 1; height: 6px;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 999px; overflow: hidden;
-      }
-      .metric-bar-fill {
-        height: 100%; border-radius: 999px;
-        transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .metric-bar-fill.green { background: linear-gradient(90deg, var(--accent-green), #6ee7b7); }
-      .metric-bar-fill.amber { background: linear-gradient(90deg, var(--accent-amber), #fde68a); }
-      .metric-bar-fill.red { background: linear-gradient(90deg, var(--accent-red), #fca5a5); }
-      .metric-bar-fill.blue { background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); }
-
-      .metric-val {
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
-        font-weight: 900;
-        color: #FFFFFF;
-        width: 42px; text-align: right; flex-shrink: 0;
-      }
-
-      .node-health {
-        margin-top: 12px;
-        padding-top: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.04);
-        font-size: 0.86rem;
-        color: #FFFFFF;
-        display: flex; align-items: center; gap: 6px;
-      }
-
-      /* ===== MESSAGES ===== */
-      .messages-list { display: flex; flex-direction: column; gap: 10px; }
-
-      .msg-card {
-        display: flex; align-items: flex-start; gap: 12px;
-        padding: 14px 16px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border);
-        background: rgba(10, 18, 38, 0.6);
-        transition: all var(--transition-fast);
-      }
-      .msg-card:hover {
-        border-color: var(--border-hover);
-        background: rgba(14, 24, 48, 0.8);
-      }
-
-      .msg-number {
-        width: 28px; height: 28px; flex-shrink: 0;
-        border-radius: 8px;
-        background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-        display: flex; align-items: center; justify-content: center;
-        font-family: var(--font-mono);
-        font-size: 0.75rem; font-weight: 700;
-      }
-
-      .msg-content { flex: 1; font-size: 0.98rem; line-height: 1.5; color: #FFFFFF; }
-
-      .msg-speak-btn {
-        flex-shrink: 0;
-        width: 32px; height: 32px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: var(--bg-card);
-        color: #FFFFFF;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        transition: all var(--transition-fast);
-        font-size: 1rem;
-      }
-      .msg-speak-btn:hover {
-        border-color: var(--accent-cyan);
-        color: #FFFFFF;
-        box-shadow: 0 0 12px var(--glow-cyan);
-      }
-      .msg-speak-btn.playing {
-        border-color: var(--accent-cyan);
-        background: rgba(34, 211, 238, 0.1);
-        color: #FFFFFF;
-        animation: speakerPulse 1s ease-in-out infinite;
-      }
-      @keyframes speakerPulse {
-        0%, 100% { box-shadow: 0 0 0 rgba(34, 211, 238, 0); }
-        50% { box-shadow: 0 0 16px var(--glow-cyan); }
-      }
-
-      /* ===== MAP ===== */
-      .map-container { position: relative; }
-      .map {
-        width: 100%;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border);
-        background: linear-gradient(180deg, rgba(8, 16, 32, 0.9), rgba(6, 12, 24, 0.95));
-      }
-      .route-line {
-        stroke: url(#routeGradient);
-        stroke-width: 2.5;
-        stroke-dasharray: 10 6;
-        stroke-linecap: round;
-        animation: flowRoute 2s linear infinite;
-      }
-      @keyframes flowRoute {
-        from { stroke-dashoffset: 0; }
-        to { stroke-dashoffset: -16; }
-      }
-      .node-dot { transition: all var(--transition-fast); }
-      .node-dot:hover { filter: brightness(1.3); }
-      .control-dot { fill: var(--accent-purple); }
-      .map text {
-        fill: #FFFFFF; font-family: var(--font-body);
-        font-size: 11px; font-weight: 500;
-      }
-
-      /* ===== API KEY MODAL ===== */
-      .modal-overlay {
-        display: none;
-        position: fixed; inset: 0;
-        background: rgba(4, 8, 16, 0.85);
-        backdrop-filter: blur(8px);
-        z-index: 1000;
-        align-items: center; justify-content: center;
-        animation: fadeIn 0.3s ease;
-      }
-      .modal-overlay.active { display: flex; }
-
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-      .modal {
-        background: var(--bg-elevated);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-lg);
-        padding: 32px;
-        max-width: 460px; width: 90%;
-        box-shadow: var(--shadow-elevated);
-        animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      @keyframes scaleIn {
-        from { opacity: 0; transform: scale(0.92); }
-        to { opacity: 1; transform: scale(1); }
-      }
-
-      .modal h2 {
-        font-size: 1.2rem; font-weight: 700;
-        margin-bottom: 8px;
-        display: flex; align-items: center; gap: 8px;
-      }
-      .modal p { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; margin-bottom: 18px; }
-
-      .modal input[type="text"] {
-        width: 100%;
-        padding: 10px 14px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        background: rgba(6, 12, 28, 0.8);
-        color: var(--text-primary);
-        font-family: var(--font-mono);
-        font-size: 0.85rem;
-        margin-bottom: 16px;
-        transition: border-color var(--transition-fast);
-      }
-      .modal input[type="text"]::placeholder { color: #FFFFFF; opacity: 1; }
-      .modal input[type="text"]:focus { border-color: var(--accent-cyan); outline: none; }
-
-      .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-      /* ===== TOAST ===== */
-      .toast {
-        position: fixed; bottom: 24px; right: 24px;
-        padding: 12px 20px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border);
-        background: var(--bg-elevated);
-        backdrop-filter: var(--glass);
-        box-shadow: var(--shadow-elevated);
-        font-size: 0.85rem;
-        display: flex; align-items: center; gap: 8px;
-        z-index: 999;
-        animation: slideInRight 0.4s ease, fadeOut 0.4s ease 3.5s forwards;
-      }
-      @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
-      @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
-      .toast.success { border-color: rgba(52, 211, 153, 0.3); }
-      .toast.error { border-color: rgba(239, 68, 68, 0.3); }
-
-      /* ===== SARVAM BADGE ===== */
-      .sarvam-badge {
-        display: inline-flex; align-items: center; gap: 6px;
-        margin-top: 14px;
-        padding: 6px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(167, 139, 250, 0.2);
-        background: rgba(167, 139, 250, 0.06);
-        font-size: 0.72rem;
-        color: #FFFFFF;
-        font-weight: 600;
-      }
-
-      /* ===== RESPONSIVE ===== */
-      @media (max-width: 1100px) {
-        .grid-kpi { grid-template-columns: repeat(3, 1fr); }
-      }
-      @media (max-width: 768px) {
-        .topbar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 16px; }
-        .grid-kpi { grid-template-columns: repeat(2, 1fr); }
-        .node-grid { grid-template-columns: 1fr; }
-        .kpi .value { font-size: 1.75rem; }
-      }
-      @media (max-width: 480px) {
-        .grid-kpi { grid-template-columns: 1fr; }
-        .app { padding: 12px 10px 30px; }
-      }
-
-      /* ===== CONTROLS ROW ===== */
-      .controls-row {
-        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-      }
-      .controls-row label {
-        display: flex; align-items: center; gap: 6px;
-        font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;
-      }
-
-      /* ===== NODE CARDS CLICKABLE ===== */
-      .node { cursor: pointer; }
-      .node:active { transform: scale(0.98); }
-
-      /* ===== NODE DETAIL DRAWER ===== */
-      .drawer-backdrop {
-        position: fixed; inset: 0;
-        background: rgba(4, 8, 16, 0.65);
-        backdrop-filter: blur(4px);
-        z-index: 900;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.35s ease;
-      }
-      .drawer-backdrop.open {
+      100% {
         opacity: 1;
-        pointer-events: auto;
+      }
+    }
+
+    /* ===== GRID NOISE OVERLAY ===== */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(100, 180, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(100, 180, 255, 0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== LAYOUT ===== */
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 24px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      backdrop-filter: var(--glass);
+      box-shadow: var(--shadow-elevated);
+      animation: slideDown 0.6s var(--transition-smooth) both;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
       }
 
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      box-shadow: 0 4px 16px var(--glow-cyan);
+      flex-shrink: 0;
+    }
+
+    .topbar h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    .topbar .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      margin-top: 2px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn:hover {
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-color: rgba(34, 211, 238, 0.3);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 4px 20px var(--glow-cyan);
+    }
+
+    .btn.primary:hover {
+      box-shadow: 0 6px 28px var(--glow-cyan);
+      transform: translateY(-2px);
+    }
+
+    .btn.primary.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .btn.primary.loading::after {
+      content: '';
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ===== SELECT ===== */
+    select {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      font-family: var(--font-body);
+      font-weight: 500;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: border-color var(--transition-fast);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238faad4' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+
+    select:hover,
+    select:focus {
+      border-color: var(--border-hover);
+      outline: none;
+    }
+
+    /* ===== SECTION HEADER ===== */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title .icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .section-subtitle {
+      color: var(--text-tertiary);
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+
+    /* ===== KPI GRID ===== */
+    .grid-kpi {
+      margin: 20px 0;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .kpi {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      backdrop-filter: var(--glass);
+      box-shadow: var(--shadow-card);
+      padding: 18px 20px;
+      transition: all var(--transition-fast);
+      animation: fadeUp 0.5s var(--transition-smooth) both;
+    }
+
+    .kpi:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    .kpi:nth-child(2) {
+      animation-delay: 0.10s;
+    }
+
+    .kpi:nth-child(3) {
+      animation-delay: 0.15s;
+    }
+
+    .kpi:nth-child(4) {
+      animation-delay: 0.20s;
+    }
+
+    .kpi:nth-child(5) {
+      animation-delay: 0.25s;
+    }
+
+    .kpi:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-hover);
+    }
+
+    .kpi::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+    }
+
+    .kpi.accent-cyan::before {
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+    }
+
+    .kpi.accent-green::before {
+      background: var(--accent-green);
+      box-shadow: 0 0 12px var(--glow-green);
+    }
+
+    .kpi.accent-amber::before {
+      background: var(--accent-amber);
+      box-shadow: 0 0 12px var(--glow-amber);
+    }
+
+    .kpi.accent-red::before {
+      background: var(--accent-red);
+      box-shadow: 0 0 12px var(--glow-red);
+    }
+
+    .kpi.accent-blue::before {
+      background: var(--accent-blue);
+    }
+
+    .kpi .kpi-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi .label {
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .kpi .kpi-icon {
+      font-size: 1.2rem;
+      opacity: 0.6;
+    }
+
+    .kpi .value {
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: #FFFFFF;
+    }
+
+    .kpi .value.cyan {
+      color: #FFFFFF;
+    }
+
+    .kpi .value.green {
+      color: #FFFFFF;
+    }
+
+    .kpi .value.amber {
+      color: #FFFFFF;
+    }
+
+    .kpi .value.red {
+      color: #FFFFFF;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== PANEL ===== */
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      backdrop-filter: var(--glass);
+      box-shadow: var(--shadow-card);
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      animation: fadeUp 0.6s var(--transition-smooth) both;
+      animation-delay: 0.3s;
+    }
+
+    /* ===== NODE GRID ===== */
+    .node-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+
+    .node {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      background: linear-gradient(160deg, rgba(14, 26, 52, 0.95), rgba(10, 18, 38, 0.92));
+      transition: all var(--transition-fast);
+      overflow: hidden;
+    }
+
+    .node::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: 3px 0 0 3px;
+    }
+
+    .node.status-healthy::before {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--glow-green);
+    }
+
+    .node.status-warning::before {
+      background: var(--accent-amber);
+      box-shadow: 0 0 8px var(--glow-amber);
+    }
+
+    .node.status-critical::before {
+      background: var(--accent-red);
+      box-shadow: 0 0 8px var(--glow-red);
+    }
+
+    .node.status-critical {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+      }
+
+      50% {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+      }
+    }
+
+    .node:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-hover);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    .node-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .node-name {
+      font-weight: 800;
+      font-size: 1rem;
+      color: #FFFFFF;
+    }
+
+    .node-id {
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+    }
+
+    .pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-radius: 999px;
+      padding: 4px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .pill.healthy {
+      background: rgba(52, 211, 153, 0.12);
+      color: #FFFFFF;
+    }
+
+    .pill.healthy::before {
+      background: var(--accent-green);
+      box-shadow: 0 0 6px var(--glow-green);
+    }
+
+    .pill.warning {
+      background: rgba(251, 191, 36, 0.12);
+      color: #FFFFFF;
+    }
+
+    .pill.warning::before {
+      background: var(--accent-amber);
+      box-shadow: 0 0 6px var(--glow-amber);
+    }
+
+    .pill.critical {
+      background: rgba(239, 68, 68, 0.12);
+      color: #FFFFFF;
+    }
+
+    .pill.critical::before {
+      background: var(--accent-red);
+      box-shadow: 0 0 6px var(--glow-red);
+    }
+
+    .node-metrics {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .metric {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .metric-label {
+      font-size: 0.78rem;
+      color: #FFFFFF;
+      width: 80px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .metric-bar-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .metric-bar-fill.green {
+      background: linear-gradient(90deg, var(--accent-green), #6ee7b7);
+    }
+
+    .metric-bar-fill.amber {
+      background: linear-gradient(90deg, var(--accent-amber), #fde68a);
+    }
+
+    .metric-bar-fill.red {
+      background: linear-gradient(90deg, var(--accent-red), #fca5a5);
+    }
+
+    .metric-bar-fill.blue {
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+    }
+
+    .metric-val {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      width: 42px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .node-health {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.86rem;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ===== MESSAGES ===== */
+    .messages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .msg-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(10, 18, 38, 0.6);
+      transition: all var(--transition-fast);
+    }
+
+    .msg-card:hover {
+      border-color: var(--border-hover);
+      background: rgba(14, 24, 48, 0.8);
+    }
+
+    .msg-number {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .msg-content {
+      flex: 1;
+      font-size: 0.98rem;
+      line-height: 1.5;
+      color: #FFFFFF;
+    }
+
+    .msg-speak-btn {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: #FFFFFF;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+      font-size: 1rem;
+    }
+
+    .msg-speak-btn:hover {
+      border-color: var(--accent-cyan);
+      color: #FFFFFF;
+      box-shadow: 0 0 12px var(--glow-cyan);
+    }
+
+    .msg-speak-btn.playing {
+      border-color: var(--accent-cyan);
+      background: rgba(34, 211, 238, 0.1);
+      color: #FFFFFF;
+      animation: speakerPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes speakerPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 rgba(34, 211, 238, 0);
+      }
+
+      50% {
+        box-shadow: 0 0 16px var(--glow-cyan);
+      }
+    }
+
+
+
+    /* ===== API KEY MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 8, 16, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      max-width: 460px;
+      width: 90%;
+      box-shadow: var(--shadow-elevated);
+      animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .modal h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .modal input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: rgba(6, 12, 28, 0.8);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      transition: border-color var(--transition-fast);
+    }
+
+    .modal input[type="text"]::placeholder {
+      color: #FFFFFF;
+      opacity: 1;
+    }
+
+    .modal input[type="text"]:focus {
+      border-color: var(--accent-cyan);
+      outline: none;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      backdrop-filter: var(--glass);
+      box-shadow: var(--shadow-elevated);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 999;
+      animation: slideInRight 0.4s ease, fadeOut 0.4s ease 3.5s forwards;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+    }
+
+    .toast.success {
+      border-color: rgba(52, 211, 153, 0.3);
+    }
+
+    .toast.error {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    /* ===== SARVAM BADGE ===== */
+    .sarvam-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(167, 139, 250, 0.2);
+      background: rgba(167, 139, 250, 0.06);
+      font-size: 0.72rem;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1100px) {
+      .grid-kpi {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .grid-kpi {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .node-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi .value {
+        font-size: 1.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .grid-kpi {
+        grid-template-columns: 1fr;
+      }
+
+      .app {
+        padding: 12px 10px 30px;
+      }
+    }
+
+    /* ===== CONTROLS ROW ===== */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .controls-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ===== NODE CARDS CLICKABLE ===== */
+    .node {
+      cursor: pointer;
+    }
+
+    .node:active {
+      transform: scale(0.98);
+    }
+
+    /* ===== NODE DETAIL DRAWER ===== */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 8, 16, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 900;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 520px;
+      max-width: 92vw;
+      height: 100vh;
+      z-index: 910;
+      background: linear-gradient(180deg, rgba(10, 18, 40, 0.97), rgba(6, 12, 28, 0.98));
+      border-left: 1px solid var(--border);
+      backdrop-filter: blur(24px) saturate(1.6);
+      box-shadow: -12px 0 48px rgba(0, 0, 0, 0.5);
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-inner {
+      padding: 32px 28px 44px;
+      line-height: 1.72;
+      letter-spacing: 0.02em;
+    }
+
+    .drawer-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      color: #FFFFFF;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+      z-index: 2;
+    }
+
+    .drawer-close:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 0;
+      padding-right: 40px;
+    }
+
+    .drawer-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .drawer-title {
+      font-size: 1.38rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+    }
+
+    .drawer-id {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #FFFFFF;
+      margin-top: 3px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ===== DRAWER TABS ===== */
+    .drawer-tabs {
+      display: flex;
+      gap: 0;
+      margin: 20px 0 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+
+    .drawer-tab {
+      flex: 1;
+      padding: 12px 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.45);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      position: relative;
+      transition: color var(--transition-fast);
+      font-family: var(--font-body);
+      letter-spacing: 0.02em;
+    }
+
+    .drawer-tab:hover {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .drawer-tab.active {
+      color: #FFFFFF;
+    }
+
+    .drawer-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: 2px 2px 0 0;
+      box-shadow: 0 0 8px var(--glow-cyan);
+    }
+
+    .drawer-tab-panel {
+      display: none;
+      padding-top: 24px;
+      animation: tabFadeIn 0.25s ease;
+    }
+
+    .drawer-tab-panel.active {
+      display: block;
+    }
+
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Drawer Sections */
+    .drawer-section {
+      margin-bottom: 32px;
+    }
+
+    .drawer-section-title {
+      font-size: 0.64rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #FFFFFF;
+      margin-bottom: 18px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Live Readings */
+    .drawer-readings {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .drawer-reading {
+      padding: 20px 10px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      text-align: center;
+      transition: border-color var(--transition-fast);
+    }
+
+    .drawer-reading:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .drawer-reading .dr-icon {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+
+    .drawer-reading .dr-value {
+      font-family: var(--font-mono);
+      font-size: 2.7rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.02;
+      color: #FFFFFF;
+    }
+
+    .drawer-reading .dr-label {
+      font-size: 0.62rem;
+      color: #FFFFFF;
+      margin-top: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 500;
+    }
+
+    /* History Table */
+    .drawer-history {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 9px;
+      font-size: 0.84rem;
+    }
+
+    .drawer-history thead th {
+      text-align: left;
+      padding: 0 12px 8px;
+      color: #FFFFFF;
+      font-weight: 500;
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border: none;
+    }
+
+    .drawer-history tbody td {
+      padding: 7px 12px;
+      color: #FFFFFF;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      letter-spacing: 0.03em;
+      line-height: 1.7;
+    }
+
+    .drawer-history tbody td:first-child {
+      color: #FFFFFF;
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+    }
+
+    .drawer-history .trend-up,
+    .drawer-history .trend-down,
+    .drawer-history .trend-stable {
+      font-weight: 800;
+      font-size: 0.95em;
+      margin-left: 5px;
+    }
+
+    .drawer-history .trend-up {
+      color: #FFFFFF;
+    }
+
+    .drawer-history .trend-down {
+      color: #FFFFFF;
+    }
+
+    .drawer-history .trend-stable {
+      color: #FFFFFF;
+    }
+
+    /* Advisory */
+    .drawer-advisory {
+      padding: 0;
+      border: none;
+      background: none;
+      border-radius: 0;
+      font-size: 1.16rem;
+      line-height: 1.9;
+      color: #FFFFFF;
+      letter-spacing: 0.03em;
+    }
+
+    .drawer-advisory .adv-label {
+      display: none;
+    }
+
+    .drawer-advisory .adv-line {
+      display: block;
+      font-size: 1.16rem;
+      color: #FFFFFF;
+      line-height: 1.9;
+    }
+
+    .drawer-advisory .adv-line+.adv-line {
+      margin-top: 10px;
+      color: #FFFFFF;
+    }
+
+    /* Drawer responsive */
+    @media (max-width: 480px) {
       .drawer {
-        position: fixed;
-        top: 0; right: 0;
-        width: 420px; max-width: 92vw;
-        height: 100vh;
-        z-index: 910;
-        background: linear-gradient(180deg, rgba(10, 18, 40, 0.97), rgba(6, 12, 28, 0.98));
-        border-left: 1px solid var(--border);
-        backdrop-filter: blur(24px) saturate(1.6);
-        box-shadow: -12px 0 48px rgba(0, 0, 0, 0.5);
-        transform: translateX(100%);
-        transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-        overflow-y: auto;
-        overscroll-behavior: contain;
-      }
-      .drawer.open { transform: translateX(0); }
-
-      .drawer-inner {
-        padding: 32px 28px 44px;
-        line-height: 1.72;
-        letter-spacing: 0.02em;
+        width: 100vw;
+        max-width: 100vw;
       }
 
-      .drawer-close {
-        position: absolute; top: 18px; right: 18px;
-        width: 36px; height: 36px;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.08);
-        background: transparent;
-        color: #FFFFFF;
-        font-size: 1.1rem;
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        transition: all var(--transition-fast);
-        z-index: 2;
-      }
-      .drawer-close:hover {
-        border-color: rgba(255,255,255,0.2);
-        color: #FFFFFF;
-      }
-
-      .drawer-header {
-        display: flex; align-items: center; gap: 14px;
-        margin-bottom: 32px;
-        padding-right: 40px;
-      }
-      .drawer-icon {
-        width: 48px; height: 48px;
-        border-radius: 14px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-        background: rgba(255, 255, 255, 0.04);
-      }
-
-      .drawer-title {
-        font-size: 1.38rem; font-weight: 800;
-        letter-spacing: -0.02em;
-        color: #FFFFFF;
-      }
-      .drawer-id {
-        font-family: var(--font-mono); font-size: 0.72rem;
-        color: #FFFFFF; margin-top: 3px;
-        letter-spacing: 0.06em;
-      }
-
-      /* Drawer Sections */
-      .drawer-section {
-        margin-bottom: 32px;
-      }
-      .drawer-section-title {
-        font-size: 0.64rem; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.14em;
-        color: #FFFFFF;
-        margin-bottom: 18px;
-        padding-bottom: 9px;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
-      }
-
-      /* Live Readings */
       .drawer-readings {
-        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+        grid-template-columns: 1fr;
       }
-      .drawer-reading {
-        padding: 20px 10px 16px;
-        border-radius: var(--radius-sm);
-        border: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255, 255, 255, 0.02);
-        text-align: center;
-        transition: border-color var(--transition-fast);
-      }
-      .drawer-reading:hover { border-color: rgba(255,255,255,0.12); }
-      .drawer-reading .dr-icon { font-size: 1.1rem; margin-bottom: 10px; opacity: 0.7; }
-      .drawer-reading .dr-value {
-        font-family: var(--font-mono);
-        font-size: 2.7rem; font-weight: 900;
-        letter-spacing: -0.03em;
-        line-height: 1.02;
-        color: #FFFFFF;
-      }
-      .drawer-reading .dr-label {
-        font-size: 0.62rem; color: #FFFFFF;
-        margin-top: 9px; text-transform: uppercase;
-        letter-spacing: 0.12em;
-        font-weight: 500;
-      }
+    }
 
-      /* History Table */
-      .drawer-history {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 9px;
-        font-size: 0.84rem;
-      }
-      .drawer-history thead th {
-        text-align: left;
-        padding: 0 12px 8px;
-        color: #FFFFFF;
-        font-weight: 500;
-        font-size: 0.66rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        border: none;
-      }
-      .drawer-history tbody td {
-        padding: 7px 12px;
-        color: #FFFFFF;
-        border: none;
-        font-family: var(--font-mono);
-        font-size: 0.84rem;
-        letter-spacing: 0.03em;
-        line-height: 1.7;
-      }
-      .drawer-history tbody td:first-child {
-        color: #FFFFFF;
-        font-family: var(--font-body);
-        font-size: 0.78rem;
-      }
-      .drawer-history .trend-up,
-      .drawer-history .trend-down,
-      .drawer-history .trend-stable {
-        font-weight: 800;
-        font-size: 0.95em;
-        margin-left: 5px;
-      }
-      .drawer-history .trend-up { color: #FFFFFF; }
-      .drawer-history .trend-down { color: #FFFFFF; }
-      .drawer-history .trend-stable { color: #FFFFFF; }
+    /* ===== PHOTO GRID (Camera Tab) ===== */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
 
-      /* Advisory */
-      .drawer-advisory {
-        padding: 0;
-        border: none;
-        background: none;
-        border-radius: 0;
-        font-size: 1.16rem;
-        line-height: 1.9;
-        color: #FFFFFF;
-        letter-spacing: 0.03em;
-      }
-      .drawer-advisory .adv-label {
-        display: none;
-      }
-      .drawer-advisory .adv-line {
-        display: block;
-        font-size: 1.16rem;
-        color: #FFFFFF;
-        line-height: 1.9;
-      }
-      .drawer-advisory .adv-line + .adv-line {
-        margin-top: 10px;
-        color: #FFFFFF;
-      }
+    .photo-card {
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      transition: all var(--transition-fast);
+    }
 
-      /* Drawer responsive */
-      @media (max-width: 480px) {
-        .drawer { width: 100vw; max-width: 100vw; }
-        .drawer-readings { grid-template-columns: 1fr; }
-      }
-    </style>
-  </head>
-  <body>
-    <main class="app">
-      <!-- ===== TOP BAR ===== -->
-      <header class="topbar" id="topbar">
-        <div class="topbar-left">
-          <div class="logo-icon">🌿</div>
-          <div>
-            <h1>Plantation Control Center</h1>
-            <p class="subtitle">Real-time monitoring · Multilingual voice advisories</p>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn" href="/">🏠 Home</a>
-          <a class="btn" href="/introduction/overview">📄 Docs</a>
-          <button id="speak" class="btn primary">🔊 Speak All</button>
-        </div>
-      </header>
+    .photo-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
 
-      <!-- ===== KPIs ===== -->
-      <section class="grid-kpi" id="kpis"></section>
+    .photo-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      display: block;
+    }
 
-      <!-- ===== NODE HEALTH ===== -->
-      <section class="panel">
-        <div class="section-header">
-          <div>
-            <div class="section-title">
-              <span class="icon" style="background: rgba(52, 211, 153, 0.12);">📡</span>
-              Node Health Overview
-            </div>
-            <p class="section-subtitle">Live sensor readings across all plantation nodes</p>
-          </div>
-          <div class="controls-row">
-            <label>
-              Filter:
-              <select id="statusFilter">
-                <option value="all">All Nodes</option>
-                <option value="healthy">Healthy</option>
-                <option value="warning">Warning</option>
-                <option value="critical">Critical</option>
-              </select>
-            </label>
-          </div>
-        </div>
-        <div class="node-grid" id="nodes"></div>
-      </section>
+    .photo-card-meta {
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-      <!-- ===== MESSAGES ===== -->
-      <section class="panel">
-        <div class="section-header">
-          <div>
-            <div class="section-title">
-              <span class="icon" style="background: rgba(167, 139, 250, 0.12);">🗣️</span>
-              Multilingual Health Advisories
-            </div>
-            <p class="section-subtitle">Localized alerts for the field team — with AI voice readout</p>
-          </div>
-          <div class="controls-row">
-            <label>
-              Language:
-              <select id="language">
-                <option value="English">English</option>
-                <option value="Hindi">हिन्दी</option>
-                <option value="Kannada">ಕನ್ನಡ</option>
-              </select>
-            </label>
-          </div>
-        </div>
-        <div class="messages-list" id="messages"></div>
-        <div class="sarvam-badge">⚡ Voice powered by Sarvam AI — bulbul:v2</div>
-      </section>
+    .photo-card-meta .photo-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      flex-shrink: 0;
+    }
 
-      <!-- ===== MAP ===== -->
-      <section class="panel">
-        <div class="section-header">
-          <div>
-            <div class="section-title">
-              <span class="icon" style="background: rgba(34, 211, 238, 0.12);">🗺️</span>
-              Optimized Traversal Route
-            </div>
-            <p class="section-subtitle">Nearest-neighbor path for efficient field inspection</p>
-          </div>
-        </div>
-        <div class="map-container">
-          <svg class="map" viewBox="0 0 760 320" id="map">
-            <defs>
-              <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#a78bfa" />
-                <stop offset="50%" stop-color="#22d3ee" />
-                <stop offset="100%" stop-color="#34d399" />
-              </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-              </filter>
-            </defs>
-          </svg>
-        </div>
-      </section>
+    .photo-card-meta .photo-time {
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.6);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-      <!-- ===== NODE DETAIL DRAWER ===== -->
-      <div class="drawer-backdrop" id="drawerBackdrop"></div>
-      <aside class="drawer" id="nodeDrawer">
-        <button class="drawer-close" id="drawerClose" title="Close">✕</button>
-        <div class="drawer-inner" id="drawerContent"></div>
-      </aside>
-    </main>
+    .photo-loading,
+    .photo-empty {
+      padding: 32px;
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 0.82rem;
+      width: 100%;
+      grid-column: 1 / -1;
+    }
 
-    <!-- ===== API KEY MODAL ===== -->
-    <div class="modal-overlay" id="apiModal">
-      <div class="modal">
-        <h2>🔑 Sarvam AI API Key</h2>
-        <p>Enter your Sarvam AI API key to enable multilingual voice readout. The key is stored locally in your browser and never sent elsewhere.</p>
-        <input type="text" id="apiKeyInput" placeholder="Paste your api-subscription-key here…" autocomplete="off" />
-        <div class="modal-actions">
-          <button class="btn" id="cancelApiKey">Cancel</button>
-          <button class="btn primary" id="saveApiKey">Save & Speak</button>
+    /* ===== HISTORY ROW INTERACTION ===== */
+    .drawer-history tbody tr {
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      position: relative;
+      border-radius: 6px;
+    }
+
+    .drawer-history tbody tr:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .drawer-history tbody tr.row-active {
+      background: rgba(34, 211, 238, 0.08);
+    }
+
+    .drawer-history tbody tr.row-active td {
+      color: var(--accent-cyan);
+    }
+
+    .history-tooltip {
+      position: fixed;
+      z-index: 950;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      background: rgba(10, 18, 40, 0.96);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      line-height: 1.8;
+      color: #FFFFFF;
+      pointer-events: none;
+      animation: tabFadeIn 0.15s ease;
+    }
+
+    .history-tooltip .ht-label {
+      color: rgba(255,255,255,0.5);
+      font-family: var(--font-body);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ===== HISTORY CHART ===== */
+    .history-chart-wrap {
+      margin-bottom: 24px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      padding: 16px 12px 12px;
+    }
+
+    .history-chart-wrap canvas {
+      width: 100%;
+      height: 180px;
+      display: block;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.65);
+      cursor: pointer;
+      transition: opacity var(--transition-fast);
+    }
+
+    .chart-legend-item:hover {
+      opacity: 1;
+    }
+
+    .chart-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ===== LIGHTBOX ===== */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      animation: fadeIn 0.25s ease;
+      cursor: zoom-out;
+    }
+
+    .lightbox img {
+      max-width: 92vw;
+      max-height: 82vh;
+      border-radius: var(--radius-md);
+      box-shadow: 0 16px 64px rgba(0, 0, 0, 0.6);
+      object-fit: contain;
+    }
+
+    .lightbox-timestamp {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+
+    .lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <!-- ===== TOP BAR ===== -->
+    <header class="topbar" id="topbar">
+      <div class="topbar-left">
+        <div class="logo-icon">🌿</div>
+        <div>
+          <h1>Plantation Control Center</h1>
+          <p class="subtitle">Real-time monitoring · Multilingual voice advisories</p>
         </div>
       </div>
+      <div class="actions">
+        <a class="btn" href="/">🏠 Home</a>
+        <a class="btn" href="/introduction/overview">📄 Docs</a>
+        <button id="speak" class="btn primary">🔊 Speak All</button>
+      </div>
+    </header>
+
+    <!-- ===== KPIs ===== -->
+    <section class="grid-kpi" id="kpis"></section>
+
+    <!-- ===== NODE HEALTH ===== -->
+    <section class="panel">
+      <div class="section-header">
+        <div>
+          <div class="section-title">
+            <span class="icon" style="background: rgba(52, 211, 153, 0.12);">📡</span>
+            Node Health Overview
+          </div>
+          <p class="section-subtitle">Live sensor readings across all plantation nodes</p>
+        </div>
+        <div class="controls-row">
+          <label>
+            Filter:
+            <select id="statusFilter">
+              <option value="all">All Nodes</option>
+              <option value="healthy">Healthy</option>
+              <option value="warning">Warning</option>
+              <option value="critical">Critical</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="node-grid" id="nodes"></div>
+    </section>
+
+    <!-- ===== MESSAGES ===== -->
+    <section class="panel">
+      <div class="section-header">
+        <div>
+          <div class="section-title">
+            <span class="icon" style="background: rgba(167, 139, 250, 0.12);">🗣️</span>
+            Multilingual Health Advisories
+          </div>
+          <p class="section-subtitle">Localized alerts for the field team — with AI voice readout</p>
+        </div>
+        <div class="controls-row">
+          <label>
+            Language:
+            <select id="language">
+              <option value="English">English</option>
+              <option value="Hindi">हिन्दी</option>
+              <option value="Kannada">ಕನ್ನಡ</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="messages-list" id="messages"></div>
+      <div class="sarvam-badge">⚡ Voice powered by Sarvam AI — bulbul:v2</div>
+    </section>
+
+
+
+    <!-- ===== NODE DETAIL DRAWER ===== -->
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="drawer" id="nodeDrawer">
+      <button class="drawer-close" id="drawerClose" title="Close">✕</button>
+      <div class="drawer-inner" id="drawerContent"></div>
+    </aside>
+  </main>
+
+  <!-- ===== API KEY MODAL ===== -->
+  <div class="modal-overlay" id="apiModal">
+    <div class="modal">
+      <h2>🔑 Sarvam AI API Key</h2>
+      <p>Enter your Sarvam AI API key to enable multilingual voice readout. The key is stored locally in your browser
+        and never sent elsewhere.</p>
+      <input type="text" id="apiKeyInput" placeholder="Paste your api-subscription-key here…" autocomplete="off" />
+      <div class="modal-actions">
+        <button class="btn" id="cancelApiKey">Cancel</button>
+        <button class="btn primary" id="saveApiKey">Save & Speak</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-      /* ===== DATA ===== */
-      const nodes = [
-        { id: 'N-01', name: 'North Bed 1', status: 'healthy',  moisture: 62, temperature: 29, battery: 88, healthText: 'Stable growth',          x: 2,  y: 4 },
-        { id: 'N-02', name: 'North Bed 2', status: 'warning',  moisture: 39, temperature: 33, battery: 72, healthText: 'Low moisture',            x: 5,  y: 7 },
-        { id: 'N-03', name: 'Central Bed 1', status: 'critical', moisture: 27, temperature: 36, battery: 51, healthText: 'Needs urgent watering', x: 8,  y: 6 },
-        { id: 'N-04', name: 'South Bed 1', status: 'healthy',  moisture: 58, temperature: 30, battery: 79, healthText: 'Good condition',          x: 10, y: 2 },
-        { id: 'N-05', name: 'South Bed 2', status: 'warning',  moisture: 41, temperature: 32, battery: 67, healthText: 'Monitor nutrients',       x: 12, y: 4 }
-      ];
+  <script>
+    /* ===== DATA ===== */
+    let nodes = [];
 
-      /* ===== MOCK HISTORY DATA ===== */
-      const nodeHistory = {
-        'N-01': [
-          { time: '10:00 AM', moisture: 60, temperature: 28, battery: 89 },
-          { time: '10:15 AM', moisture: 61, temperature: 28, battery: 89 },
-          { time: '10:30 AM', moisture: 61, temperature: 29, battery: 88 },
-          { time: '10:45 AM', moisture: 62, temperature: 29, battery: 88 },
-          { time: '11:00 AM', moisture: 62, temperature: 29, battery: 88 },
-        ],
-        'N-02': [
-          { time: '10:00 AM', moisture: 44, temperature: 31, battery: 74 },
-          { time: '10:15 AM', moisture: 43, temperature: 32, battery: 73 },
-          { time: '10:30 AM', moisture: 41, temperature: 32, battery: 73 },
-          { time: '10:45 AM', moisture: 40, temperature: 33, battery: 72 },
-          { time: '11:00 AM', moisture: 39, temperature: 33, battery: 72 },
-        ],
-        'N-03': [
-          { time: '10:00 AM', moisture: 34, temperature: 34, battery: 54 },
-          { time: '10:15 AM', moisture: 32, temperature: 35, battery: 53 },
-          { time: '10:30 AM', moisture: 30, temperature: 35, battery: 52 },
-          { time: '10:45 AM', moisture: 28, temperature: 36, battery: 52 },
-          { time: '11:00 AM', moisture: 27, temperature: 36, battery: 51 },
-        ],
-        'N-04': [
-          { time: '10:00 AM', moisture: 56, temperature: 29, battery: 81 },
-          { time: '10:15 AM', moisture: 57, temperature: 30, battery: 80 },
-          { time: '10:30 AM', moisture: 57, temperature: 30, battery: 80 },
-          { time: '10:45 AM', moisture: 58, temperature: 30, battery: 79 },
-          { time: '11:00 AM', moisture: 58, temperature: 30, battery: 79 },
-        ],
-        'N-05': [
-          { time: '10:00 AM', moisture: 45, temperature: 31, battery: 69 },
-          { time: '10:15 AM', moisture: 44, temperature: 31, battery: 68 },
-          { time: '10:30 AM', moisture: 43, temperature: 32, battery: 68 },
-          { time: '10:45 AM', moisture: 42, temperature: 32, battery: 67 },
-          { time: '11:00 AM', moisture: 41, temperature: 32, battery: 67 },
-        ]
-      };
+    /* Static metadata — physical config that doesn't come from the API */
+    const NODE_META = {
+      'N-01': { name: 'North Bed 1', hasCamera: true },
+      'N-02': { name: 'North Bed 2' },
+      'N-03': { name: 'Central Bed 1' },
+      'N-04': { name: 'South Bed 1' },
+      'N-05': { name: 'South Bed 2' },
+    };
+    function metaFor(id) {
+      return NODE_META[id] || { name: id };
+    }
 
-      /* ===== HUMAN-TONE ADVISORIES ===== */
-      const nodeAdvisories = {
-        'N-01': ["Moisture and temperature are both in the ideal range — stable all morning.", "No action needed. Continue the current care routine. 🌱"],
-        'N-02': ["Moisture has been dropping steadily and is now near the lower limit.", "Schedule a watering session soon before it enters the critical zone."],
-        'N-03': ["Moisture has fallen to 27% and temperature is running high at 36°C — signs of heat stress.", "Irrigate this bed immediately to prevent crop damage. ⚠️"],
-        'N-04': ["All readings have been steady this morning with no concerning trends.", "Keep up the current routine — no action needed. 👍"],
-        'N-05': ["Moisture is gradually declining and the nutrient stress signal is active.", "Consider adding compost or a nutrient supplement soon."]
-      };
+    /* Derive status + healthText from sensor values */
+    function deriveStatus(m, t) {
+      if (m < 35 || t > 34) return 'critical';
+      if (m < 50 || t > 30) return 'warning';
+      return 'healthy';
+    }
+    function deriveHealthText(status, m, t) {
+      if (status === 'critical') return m < 35 ? 'Needs urgent watering' : 'High temperature stress';
+      if (status === 'warning') return m < 50 ? 'Low moisture — monitor' : 'Warm conditions';
+      return 'Stable growth';
+    }
 
-      const messages = {
-        English: [
-          'Critical node detected. Irrigate Central Bed 1 immediately.',
-          'North Bed 2 moisture is below threshold. Schedule watering now.',
-          'South Bed 2 shows nutrient stress. Add compost.'
-        ],
-        Hindi: [
-          'क्रिटिकल नोड मिला है। सेंट्रल बेड 1 को तुरंत पानी दें।',
-          'नॉर्थ बेड 2 में नमी कम है। अभी सिंचाई करें।',
-          'साउथ बेड 2 में पोषक तत्व तनाव है। खाद डालें।'
-        ],
-        Kannada: [
-          'ಗಂಭೀರ ನೋಡ್ ಕಂಡುಬಂದಿದೆ. ಸೆಂಟ್ರಲ್ ಬೆಡ್ 1ಕ್ಕೆ ತಕ್ಷಣ ನೀರು ಹಾಕಿ.',
-          'ನಾರ್ಥ್ ಬೆಡ್ 2 ರಲ್ಲಿ ತೇವಾಂಶ ಕಡಿಮೆ ಇದೆ. ಈಗ ನೀರಾವರಿ ಮಾಡಿ.',
-          'ಸೌತ್ ಬೆಡ್ 2 ನಲ್ಲಿ ಪೋಷಕಾಂಶ ಒತ್ತಡ ಇದೆ. ಗೊಬ್ಬರ ಸೇರಿಸಿ.'
-        ]
-      };
-
-      const langCodes = { English: 'en-IN', Hindi: 'hi-IN', Kannada: 'kn-IN' };
-      const browserVoiceLang = { English: 'en-US', Hindi: 'hi-IN', Kannada: 'kn-IN' };
-
-      /* ===== DOM REFS ===== */
-      const statusFilter = document.getElementById('statusFilter');
-      const languageSelect = document.getElementById('language');
-      const speakAllBtn = document.getElementById('speak');
-      const apiModal = document.getElementById('apiModal');
-      const apiKeyInput = document.getElementById('apiKeyInput');
-      const saveApiKeyBtn = document.getElementById('saveApiKey');
-      const cancelApiKeyBtn = document.getElementById('cancelApiKey');
-
-      /* ===== HELPERS ===== */
-      function getMoistureColor(v) { return v >= 50 ? 'green' : v >= 35 ? 'amber' : 'red'; }
-      function getTempColor(v) { return v <= 30 ? 'green' : v <= 34 ? 'amber' : 'red'; }
-      function getBatteryColor(v) { return v >= 70 ? 'green' : v >= 40 ? 'amber' : 'red'; }
-
-      function nearestRoute(list) {
-        const rem = [...list], out = [];
-        let cur = { x: 0, y: 0 };
-        while (rem.length) {
-          let idx = 0, dist = Infinity;
-          rem.forEach((n, i) => {
-            const d = Math.hypot(n.x - cur.x, n.y - cur.y);
-            if (d < dist) { dist = d; idx = i; }
-          });
-          const [next] = rem.splice(idx, 1);
-          out.push(next); cur = next;
-        }
-        return out;
+    /* Fetch latest readings from API and rebuild nodes array */
+    async function fetchNodes() {
+      try {
+        const res = await fetch(`${API_BASE}/nodes/all`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const readings = await res.json();
+        nodes = readings.map(r => {
+          const meta = metaFor(r.node_id);
+          const status = deriveStatus(r.moisture, r.temperature);
+          return {
+            id: r.node_id,
+            name: meta.name,
+            hasCamera: meta.hasCamera || false,
+            moisture: Math.round(r.moisture * 10) / 10,
+            temperature: Math.round(r.temperature * 10) / 10,
+            battery: Math.round(r.battery * 10) / 10,
+            status,
+            healthText: deriveHealthText(status, r.moisture, r.temperature),
+          };
+        });
+        render();
+      } catch (err) {
+        console.warn('Failed to fetch nodes:', err);
       }
+    }
 
-      /* ===== RENDER ===== */
-      function render() {
-        const filtered = statusFilter.value === 'all' ? nodes : nodes.filter(n => n.status === statusFilter.value);
-        const healthy = filtered.filter(n => n.status === 'healthy').length;
-        const warning = filtered.filter(n => n.status === 'warning').length;
-        const critical = filtered.filter(n => n.status === 'critical').length;
-        const avg = filtered.length ? Math.round(filtered.reduce((a, n) => a + n.moisture, 0) / filtered.length) : 0;
+    /* ===== HUMAN-TONE ADVISORIES ===== */
+    const nodeAdvisories = {
+      'N-01': ["Moisture and temperature are both in the ideal range — stable all morning.", "No action needed. Continue the current care routine. 🌱"],
+      'N-02': ["Moisture has been dropping steadily and is now near the lower limit.", "Schedule a watering session soon before it enters the critical zone."],
+      'N-03': ["Moisture has fallen to 27% and temperature is running high at 36°C — signs of heat stress.", "Irrigate this bed immediately to prevent crop damage. ⚠️"],
+      'N-04': ["All readings have been steady this morning with no concerning trends.", "Keep up the current routine — no action needed. 👍"],
+      'N-05': ["Moisture is gradually declining and the nutrient stress signal is active.", "Consider adding compost or a nutrient supplement soon."]
+    };
 
-        /* --- KPIs --- */
-        document.getElementById('kpis').innerHTML = `
+    const messages = {
+      English: [
+        'Critical node detected. Irrigate Central Bed 1 immediately.',
+        'North Bed 2 moisture is below threshold. Schedule watering now.',
+        'South Bed 2 shows nutrient stress. Add compost.'
+      ],
+      Hindi: [
+        'क्रिटिकल नोड मिला है। सेंट्रल बेड 1 को तुरंत पानी दें।',
+        'नॉर्थ बेड 2 में नमी कम है। अभी सिंचाई करें।',
+        'साउथ बेड 2 में पोषक तत्व तनाव है। खाद डालें।'
+      ],
+      Kannada: [
+        'ಗಂಭೀರ ನೋಡ್ ಕಂಡುಬಂದಿದೆ. ಸೆಂಟ್ರಲ್ ಬೆಡ್ 1ಕ್ಕೆ ತಕ್ಷಣ ನೀರು ಹಾಕಿ.',
+        'ನಾರ್ಥ್ ಬೆಡ್ 2 ರಲ್ಲಿ ತೇವಾಂಶ ಕಡಿಮೆ ಇದೆ. ಈಗ ನೀರಾವರಿ ಮಾಡಿ.',
+        'ಸೌತ್ ಬೆಡ್ 2 ನಲ್ಲಿ ಪೋಷಕಾಂಶ ಒತ್ತಡ ಇದೆ. ಗೊಬ್ಬರ ಸೇರಿಸಿ.'
+      ]
+    };
+
+    const langCodes = { English: 'en-IN', Hindi: 'hi-IN', Kannada: 'kn-IN' };
+    const browserVoiceLang = { English: 'en-US', Hindi: 'hi-IN', Kannada: 'kn-IN' };
+    const API_BASE = 'http://localhost:8000';
+
+    /* ===== DOM REFS ===== */
+    const statusFilter = document.getElementById('statusFilter');
+    const languageSelect = document.getElementById('language');
+    const speakAllBtn = document.getElementById('speak');
+    const apiModal = document.getElementById('apiModal');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const saveApiKeyBtn = document.getElementById('saveApiKey');
+    const cancelApiKeyBtn = document.getElementById('cancelApiKey');
+
+    /* ===== HELPERS ===== */
+    function getMoistureColor(v) { return v >= 50 ? 'green' : v >= 35 ? 'amber' : 'red'; }
+    function getTempColor(v) { return v <= 30 ? 'green' : v <= 34 ? 'amber' : 'red'; }
+    function getBatteryColor(v) { return v >= 70 ? 'green' : v >= 40 ? 'amber' : 'red'; }
+
+
+
+    /* ===== RENDER ===== */
+    function render() {
+      const filtered = statusFilter.value === 'all' ? nodes : nodes.filter(n => n.status === statusFilter.value);
+      const healthy = filtered.filter(n => n.status === 'healthy').length;
+      const warning = filtered.filter(n => n.status === 'warning').length;
+      const critical = filtered.filter(n => n.status === 'critical').length;
+      const avg = filtered.length ? Math.round(filtered.reduce((a, n) => a + n.moisture, 0) / filtered.length) : 0;
+
+      /* --- KPIs --- */
+      document.getElementById('kpis').innerHTML = `
           <article class="kpi accent-cyan">
             <div class="kpi-top"><span class="label">Total Nodes</span><span class="kpi-icon">📡</span></div>
             <p class="value cyan">${filtered.length}</p>
@@ -1050,8 +1716,8 @@
           </article>
         `;
 
-        /* --- Node cards --- */
-        document.getElementById('nodes').innerHTML = filtered.map(n => `
+      /* --- Node cards --- */
+      document.getElementById('nodes').innerHTML = filtered.map(n => `
           <article class="node status-${n.status}" data-node-id="${n.id}" title="Click to view details">
             <div class="node-head">
               <div>
@@ -1081,18 +1747,18 @@
           </article>
         `).join('');
 
-        /* Attach click handlers to node cards */
-        document.querySelectorAll('.node[data-node-id]').forEach(card => {
-          card.addEventListener('click', () => {
-            const nodeId = card.dataset.nodeId;
-            const node = nodes.find(n => n.id === nodeId);
-            if (node) openNodeDrawer(node);
-          });
+      /* Attach click handlers to node cards */
+      document.querySelectorAll('.node[data-node-id]').forEach(card => {
+        card.addEventListener('click', () => {
+          const nodeId = card.dataset.nodeId;
+          const node = nodes.find(n => n.id === nodeId);
+          if (node) openNodeDrawer(node);
         });
+      });
 
-        /* --- Messages --- */
-        const lang = languageSelect.value;
-        document.getElementById('messages').innerHTML = messages[lang].map((m, i) => `
+      /* --- Messages --- */
+      const lang = languageSelect.value;
+      document.getElementById('messages').innerHTML = messages[lang].map((m, i) => `
           <div class="msg-card">
             <div class="msg-number">${i + 1}</div>
             <div class="msg-content">${m}</div>
@@ -1100,251 +1766,213 @@
           </div>
         `).join('');
 
-        /* Attach per-message speak handlers */
-        document.querySelectorAll('.msg-speak-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const idx = parseInt(btn.dataset.index);
-            speakMessage(messages[lang][idx], lang, btn);
-          });
+      /* Attach per-message speak handlers */
+      document.querySelectorAll('.msg-speak-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.index);
+          speakMessage(messages[lang][idx], lang, btn);
         });
-
-        /* --- Map --- */
-        const route = nearestRoute(filtered.length ? filtered : nodes).map(n => ({
-          ...n,
-          cx: 60 + n.x * 52,
-          cy: 280 - n.y * 30
-        }));
-        const start = { cx: 35, cy: 280 };
-        const allPts = [start, ...route];
-        const statusColor = { healthy: '#34d399', warning: '#fbbf24', critical: '#ef4444' };
-
-        const lines = allPts.slice(0, -1).map((p, i) =>
-          `<line class="route-line" x1="${p.cx}" y1="${p.cy}" x2="${allPts[i + 1].cx}" y2="${allPts[i + 1].cy}" />`
-        ).join('');
-
-        const points = route.map((n, i) => `
-          <g class="node-dot">
-            <circle cx="${n.cx}" cy="${n.cy}" r="14" fill="${statusColor[n.status]}22" />
-            <circle cx="${n.cx}" cy="${n.cy}" r="7" fill="${statusColor[n.status]}" filter="url(#glow)" />
-            <text x="${n.cx + 18}" y="${n.cy + 4}" font-size="11">${i + 1}. ${n.name}</text>
-          </g>
-        `).join('');
-
-        document.getElementById('map').innerHTML = `
-          <defs>
-            <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#a78bfa" />
-              <stop offset="50%" stop-color="#22d3ee" />
-              <stop offset="100%" stop-color="#34d399" />
-            </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-          </defs>
-          ${lines}
-          <g class="node-dot">
-            <circle cx="${start.cx}" cy="${start.cy}" r="14" fill="#a78bfa22" />
-            <circle cx="${start.cx}" cy="${start.cy}" r="9" fill="#a78bfa" filter="url(#glow)" />
-            <text x="${start.cx + 18}" y="${start.cy + 4}" fill="#FFFFFF" font-weight="600">Control</text>
-          </g>
-          ${points}
-        `;
-      }
-
-      /* ===== SARVAM AI TTS ===== */
-      let currentAudio = null;
-
-      function getApiKey() {
-        return localStorage.getItem('sarvam_api_key') || '';
-      }
-
-      function showApiKeyModal(callback) {
-        apiModal.classList.add('active');
-        apiKeyInput.value = getApiKey();
-        apiKeyInput.focus();
-
-        const onSave = () => {
-          const key = apiKeyInput.value.trim();
-          if (!key) return;
-          localStorage.setItem('sarvam_api_key', key);
-          apiModal.classList.remove('active');
-          cleanup();
-          showToast('API key saved!', 'success');
-          if (callback) callback(key);
-        };
-
-        const onCancel = () => {
-          apiModal.classList.remove('active');
-          cleanup();
-        };
-
-        const cleanup = () => {
-          saveApiKeyBtn.removeEventListener('click', onSave);
-          cancelApiKeyBtn.removeEventListener('click', onCancel);
-        };
-
-        saveApiKeyBtn.addEventListener('click', onSave);
-        cancelApiKeyBtn.addEventListener('click', onCancel);
-      }
-
-      async function callSarvamTTS(text, lang, apiKey) {
-        const res = await fetch('https://api.sarvam.ai/text-to-speech', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'api-subscription-key': apiKey
-          },
-          body: JSON.stringify({
-            text: text,
-            target_language_code: langCodes[lang] || 'en-IN',
-            speaker: 'anushka',
-            model: 'bulbul:v2',
-            pitch: 0.0,
-            pace: 1.0,
-            loudness: 1.5
-          })
-        });
-
-        if (!res.ok) {
-          const err = await res.text();
-          throw new Error(`API Error ${res.status}: ${err}`);
-        }
-
-        const data = await res.json();
-        if (!data.audios || !data.audios.length) throw new Error('No audio returned');
-        return data.audios[0]; // base64 audio
-      }
-
-      function playBase64Audio(base64) {
-        return new Promise((resolve, reject) => {
-          if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-          const audio = new Audio(`data:audio/wav;base64,${base64}`);
-          currentAudio = audio;
-          audio.onended = () => { currentAudio = null; resolve(); };
-          audio.onerror = (e) => { currentAudio = null; reject(e); };
-          audio.play();
-        });
-      }
-
-      function fallbackSpeak(text, lang) {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = browserVoiceLang[lang] || 'en-US';
-        window.speechSynthesis.speak(u);
-      }
-
-      async function speakMessage(text, lang, btnEl) {
-        const apiKey = getApiKey();
-        if (!apiKey) {
-          showApiKeyModal(async (key) => {
-            await doSpeak(text, lang, key, btnEl);
-          });
-          return;
-        }
-        await doSpeak(text, lang, apiKey, btnEl);
-      }
-
-      async function doSpeak(text, lang, apiKey, btnEl) {
-        if (btnEl) btnEl.classList.add('playing');
-        try {
-          const audio = await callSarvamTTS(text, lang, apiKey);
-          await playBase64Audio(audio);
-        } catch (err) {
-          console.warn('Sarvam TTS failed, using fallback:', err.message);
-          showToast('Voice API failed — using browser fallback', 'error');
-          fallbackSpeak(text, lang);
-        } finally {
-          if (btnEl) btnEl.classList.remove('playing');
-        }
-      }
-
-      /* Speak All */
-      speakAllBtn.addEventListener('click', async () => {
-        const apiKey = getApiKey();
-        const lang = languageSelect.value;
-        const msgs = messages[lang];
-
-        if (!apiKey) {
-          showApiKeyModal(async (key) => {
-            await speakAll(msgs, lang, key);
-          });
-          return;
-        }
-        await speakAll(msgs, lang, apiKey);
       });
 
-      async function speakAll(msgs, lang, apiKey) {
-        speakAllBtn.classList.add('loading');
-        speakAllBtn.textContent = '⏳ Speaking…';
-        const allBtns = document.querySelectorAll('.msg-speak-btn');
 
-        for (let i = 0; i < msgs.length; i++) {
-          if (allBtns[i]) allBtns[i].classList.add('playing');
-          try {
-            const audio = await callSarvamTTS(msgs[i], lang, apiKey);
-            await playBase64Audio(audio);
-          } catch (err) {
-            console.warn('Sarvam TTS failed for message', i, ':', err.message);
-            showToast('Voice API error — falling back', 'error');
-            fallbackSpeak(msgs[i], lang);
-            // small delay for fallback
-            await new Promise(r => setTimeout(r, 2000));
-          }
-          if (allBtns[i]) allBtns[i].classList.remove('playing');
-        }
+    }
 
-        speakAllBtn.classList.remove('loading');
-        speakAllBtn.textContent = '🔊 Speak All';
+    /* ===== SARVAM AI TTS ===== */
+    let currentAudio = null;
+
+    function getApiKey() {
+      return localStorage.getItem('sarvam_api_key') || '';
+    }
+
+    function showApiKeyModal(callback) {
+      apiModal.classList.add('active');
+      apiKeyInput.value = getApiKey();
+      apiKeyInput.focus();
+
+      const onSave = () => {
+        const key = apiKeyInput.value.trim();
+        if (!key) return;
+        localStorage.setItem('sarvam_api_key', key);
+        apiModal.classList.remove('active');
+        cleanup();
+        showToast('API key saved!', 'success');
+        if (callback) callback(key);
+      };
+
+      const onCancel = () => {
+        apiModal.classList.remove('active');
+        cleanup();
+      };
+
+      const cleanup = () => {
+        saveApiKeyBtn.removeEventListener('click', onSave);
+        cancelApiKeyBtn.removeEventListener('click', onCancel);
+      };
+
+      saveApiKeyBtn.addEventListener('click', onSave);
+      cancelApiKeyBtn.addEventListener('click', onCancel);
+    }
+
+    async function callSarvamTTS(text, lang, apiKey) {
+      const res = await fetch('https://api.sarvam.ai/text-to-speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-subscription-key': apiKey
+        },
+        body: JSON.stringify({
+          text: text,
+          target_language_code: langCodes[lang] || 'en-IN',
+          speaker: 'anushka',
+          model: 'bulbul:v2',
+          pitch: 0.0,
+          pace: 1.0,
+          loudness: 1.5
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`API Error ${res.status}: ${err}`);
       }
 
-      /* ===== TOAST ===== */
-      function showToast(msg, type = 'success') {
-        const old = document.querySelector('.toast');
-        if (old) old.remove();
-        const el = document.createElement('div');
-        el.className = `toast ${type}`;
-        el.innerHTML = `${type === 'success' ? '✅' : '⚠️'} ${msg}`;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 4000);
+      const data = await res.json();
+      if (!data.audios || !data.audios.length) throw new Error('No audio returned');
+      return data.audios[0]; // base64 audio
+    }
+
+    function playBase64Audio(base64) {
+      return new Promise((resolve, reject) => {
+        if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+        const audio = new Audio(`data:audio/wav;base64,${base64}`);
+        currentAudio = audio;
+        audio.onended = () => { currentAudio = null; resolve(); };
+        audio.onerror = (e) => { currentAudio = null; reject(e); };
+        audio.play();
+      });
+    }
+
+    function fallbackSpeak(text, lang) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = browserVoiceLang[lang] || 'en-US';
+      window.speechSynthesis.speak(u);
+    }
+
+    async function speakMessage(text, lang, btnEl) {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        showApiKeyModal(async (key) => {
+          await doSpeak(text, lang, key, btnEl);
+        });
+        return;
+      }
+      await doSpeak(text, lang, apiKey, btnEl);
+    }
+
+    async function doSpeak(text, lang, apiKey, btnEl) {
+      if (btnEl) btnEl.classList.add('playing');
+      try {
+        const audio = await callSarvamTTS(text, lang, apiKey);
+        await playBase64Audio(audio);
+      } catch (err) {
+        console.warn('Sarvam TTS failed, using fallback:', err.message);
+        showToast('Voice API failed — using browser fallback', 'error');
+        fallbackSpeak(text, lang);
+      } finally {
+        if (btnEl) btnEl.classList.remove('playing');
+      }
+    }
+
+    /* Speak All */
+    speakAllBtn.addEventListener('click', async () => {
+      const apiKey = getApiKey();
+      const lang = languageSelect.value;
+      const msgs = messages[lang];
+
+      if (!apiKey) {
+        showApiKeyModal(async (key) => {
+          await speakAll(msgs, lang, key);
+        });
+        return;
+      }
+      await speakAll(msgs, lang, apiKey);
+    });
+
+    async function speakAll(msgs, lang, apiKey) {
+      speakAllBtn.classList.add('loading');
+      speakAllBtn.textContent = '⏳ Speaking…';
+      const allBtns = document.querySelectorAll('.msg-speak-btn');
+
+      for (let i = 0; i < msgs.length; i++) {
+        if (allBtns[i]) allBtns[i].classList.add('playing');
+        try {
+          const audio = await callSarvamTTS(msgs[i], lang, apiKey);
+          await playBase64Audio(audio);
+        } catch (err) {
+          console.warn('Sarvam TTS failed for message', i, ':', err.message);
+          showToast('Voice API error — falling back', 'error');
+          fallbackSpeak(msgs[i], lang);
+          // small delay for fallback
+          await new Promise(r => setTimeout(r, 2000));
+        }
+        if (allBtns[i]) allBtns[i].classList.remove('playing');
       }
 
-      /* ===== NODE DETAIL DRAWER ===== */
-      const drawerBackdrop = document.getElementById('drawerBackdrop');
-      const nodeDrawer = document.getElementById('nodeDrawer');
-      const drawerContent = document.getElementById('drawerContent');
-      const drawerCloseBtn = document.getElementById('drawerClose');
+      speakAllBtn.classList.remove('loading');
+      speakAllBtn.textContent = '🔊 Speak All';
+    }
 
-      function openNodeDrawer(node) {
-        const history = nodeHistory[node.id] || [];
-        const advisoryArr = nodeAdvisories[node.id] || ['No advisory available.', ''];
-        const statusIcons = { healthy: '✅', warning: '⚠️', critical: '🚨' };
+    /* ===== TOAST ===== */
+    function showToast(msg, type = 'success') {
+      const old = document.querySelector('.toast');
+      if (old) old.remove();
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `${type === 'success' ? '✅' : '⚠️'} ${msg}`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
 
-        function trendClass(curr, prev) {
-          if (curr > prev) return 'trend-up';
-          if (curr < prev) return 'trend-down';
-          return 'trend-stable';
-        }
-        function trendArrow(curr, prev) {
-          if (curr > prev) return '↑';
-          if (curr < prev) return '↓';
-          return '—';
-        }
+    /* ===== NODE DETAIL DRAWER ===== */
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+    const nodeDrawer = document.getElementById('nodeDrawer');
+    const drawerContent = document.getElementById('drawerContent');
+    const drawerCloseBtn = document.getElementById('drawerClose');
 
-        const historyRows = history.map((h, i) => {
-          const prev = i > 0 ? history[i - 1] : h;
-          return `
-            <tr>
-              <td>${h.time}</td>
-              <td>${h.moisture}% <span class="${trendClass(h.moisture, prev.moisture)}">${trendArrow(h.moisture, prev.moisture)}</span></td>
-              <td>${h.temperature}°C <span class="${trendClass(h.temperature, prev.temperature)}">${trendArrow(h.temperature, prev.temperature)}</span></td>
-              <td>${h.battery}%</td>
-            </tr>
-          `;
-        }).join('');
+    function openNodeDrawer(node) {
+      const advisoryArr = nodeAdvisories[node.id] || ['No advisory available.', ''];
+      const statusIcons = { healthy: '✅', warning: '⚠️', critical: '🚨' };
 
-        drawerContent.innerHTML = `
+      function trendClass(curr, prev) {
+        if (curr > prev) return 'trend-up';
+        if (curr < prev) return 'trend-down';
+        return 'trend-stable';
+      }
+      function trendArrow(curr, prev) {
+        if (curr > prev) return '↑';
+        if (curr < prev) return '↓';
+        return '—';
+      }
+
+      /* Build tabbed drawer */
+      const cameraTabBtn = node.hasCamera
+        ? `<button class="drawer-tab" data-tab="camera">📷 Camera</button>`
+        : '';
+      const cameraTabPanel = node.hasCamera
+        ? `<div class="drawer-tab-panel" id="tab-camera">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+               <div style="font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase;">Recent Captures</div>
+               <button id="btnCapturePhoto" class="pill" style="cursor:pointer; background:rgba(34, 211, 238, 0.1); color:var(--primary); border:1px solid var(--primary); padding: 4px 12px; transition: all 0.2s;">📸 Capture Now</button>
+             </div>
+             <div class="photo-grid" id="drawerPhotos">
+               <div class="photo-loading">Loading photos…</div>
+             </div>
+           </div>`
+        : '';
+
+      drawerContent.innerHTML = `
           <div class="drawer-header">
             <div class="drawer-icon ${node.status}">${statusIcons[node.status] || '📡'}</div>
             <div>
@@ -1353,74 +1981,404 @@
             </div>
           </div>
 
-          <div class="drawer-section">
-            <div class="drawer-section-title">Live Sensor Readings</div>
-            <div class="drawer-readings">
-              <div class="drawer-reading">
-                <div class="dr-icon">💧</div>
-                <div class="dr-value">${node.moisture}%</div>
-                <div class="dr-label">Moisture</div>
+          <div class="drawer-tabs">
+            <button class="drawer-tab active" data-tab="overview">📊 Overview</button>
+            ${cameraTabBtn}
+            <button class="drawer-tab" data-tab="history">📈 History</button>
+          </div>
+
+          <!-- OVERVIEW TAB -->
+          <div class="drawer-tab-panel active" id="tab-overview">
+            <div class="drawer-section">
+              <div class="drawer-section-title">Live Sensor Readings</div>
+              <div class="drawer-readings">
+                <div class="drawer-reading">
+                  <div class="dr-icon">💧</div>
+                  <div class="dr-value">${node.moisture}%</div>
+                  <div class="dr-label">Moisture</div>
+                </div>
+                <div class="drawer-reading">
+                  <div class="dr-icon">🌡️</div>
+                  <div class="dr-value">${node.temperature}°C</div>
+                  <div class="dr-label">Temperature</div>
+                </div>
+                <div class="drawer-reading">
+                  <div class="dr-icon">🔋</div>
+                  <div class="dr-value">${node.battery}%</div>
+                  <div class="dr-label">Battery</div>
+                </div>
               </div>
-              <div class="drawer-reading">
-                <div class="dr-icon">🌡️</div>
-                <div class="dr-value">${node.temperature}°C</div>
-                <div class="dr-label">Temperature</div>
-              </div>
-              <div class="drawer-reading">
-                <div class="dr-icon">🔋</div>
-                <div class="dr-value">${node.battery}%</div>
-                <div class="dr-label">Battery</div>
+            </div>
+            <div class="drawer-section">
+              <div class="drawer-section-title">Advisory</div>
+              <div class="drawer-advisory">
+                <span class="adv-line">${advisoryArr[0]}</span>
+                ${advisoryArr[1] ? `<span class="adv-line">${advisoryArr[1]}</span>` : ''}
               </div>
             </div>
           </div>
 
-          <div class="drawer-section">
-            <div class="drawer-section-title">Recent History</div>
-            <table class="drawer-history">
-              <thead>
-                <tr><th>Time</th><th>Moisture</th><th>Temp</th><th>Battery</th></tr>
-              </thead>
-              <tbody>${historyRows}</tbody>
-            </table>
-          </div>
+          <!-- CAMERA TAB -->
+          ${cameraTabPanel}
 
-          <div class="drawer-section">
-            <div class="drawer-section-title">Advisory</div>
-            <div class="drawer-advisory">
-              <span class="adv-line">${advisoryArr[0]}</span>
-              ${advisoryArr[1] ? `<span class="adv-line">${advisoryArr[1]}</span>` : ''}
+          <!-- HISTORY TAB -->
+          <div class="drawer-tab-panel" id="tab-history">
+            <div class="drawer-section">
+              <div class="drawer-section-title">Sensor Trends</div>
+              <div class="history-chart-wrap">
+                <canvas id="historyChart"></canvas>
+                <div class="chart-legend">
+                  <div class="chart-legend-item" data-series="moisture">
+                    <span class="chart-legend-dot" style="background: #22d3ee;"></span> Moisture
+                  </div>
+                  <div class="chart-legend-item" data-series="temperature">
+                    <span class="chart-legend-dot" style="background: #fbbf24;"></span> Temp
+                  </div>
+                  <div class="chart-legend-item" data-series="battery">
+                    <span class="chart-legend-dot" style="background: #a78bfa;"></span> Battery
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="drawer-section">
+              <div class="drawer-section-title">Recent Readings</div>
+              <table class="drawer-history">
+                <thead>
+                  <tr><th>Time</th><th>Moisture</th><th>Temp</th><th>Battery</th></tr>
+                </thead>
+                <tbody id="drawerHistory"><tr><td colspan="4" style="text-align:center;padding:16px;">Loading…</td></tr></tbody>
+              </table>
             </div>
           </div>
         `;
 
-        drawerBackdrop.classList.add('open');
-        nodeDrawer.classList.add('open');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeNodeDrawer() {
-        drawerBackdrop.classList.remove('open');
-        nodeDrawer.classList.remove('open');
-        document.body.style.overflow = '';
-      }
-
-      drawerCloseBtn.addEventListener('click', closeNodeDrawer);
-      drawerBackdrop.addEventListener('click', closeNodeDrawer);
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeNodeDrawer();
+      /* Tab switching */
+      drawerContent.querySelectorAll('.drawer-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          drawerContent.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
+          drawerContent.querySelectorAll('.drawer-tab-panel').forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          const panel = document.getElementById(`tab-${tab.dataset.tab}`);
+          if (panel) panel.classList.add('active');
+          // Remove any lingering tooltip
+          const tip = document.querySelector('.history-tooltip');
+          if (tip) tip.remove();
+          // Draw chart when history tab becomes visible
+          if (tab.dataset.tab === 'history' && window._pendingHistoryData) {
+            setTimeout(() => drawHistoryChart(window._pendingHistoryData), 20);
+          }
+        });
       });
 
-      /* ===== EVENTS ===== */
-      statusFilter.addEventListener('change', render);
-      languageSelect.addEventListener('change', render);
+      drawerBackdrop.classList.add('open');
+      nodeDrawer.classList.add('open');
+      document.body.style.overflow = 'hidden';
 
-      /* Close modal on overlay click */
-      apiModal.addEventListener('click', (e) => {
-        if (e.target === apiModal) apiModal.classList.remove('active');
+      if (node.hasCamera) {
+          fetchNodePhotos(node.id);
+          
+          /* Pull Camera Logic */
+          const btnCapture = document.getElementById('btnCapturePhoto');
+          if (btnCapture) {
+              btnCapture.addEventListener('click', async () => {
+                  btnCapture.innerHTML = '⏳ Capturing...';
+                  btnCapture.style.opacity = '0.7';
+                  btnCapture.disabled = true;
+                  try {
+                      const res = await fetch(`${API_BASE}/node/${node.id}/request-photo`, { method: 'POST' });
+                      if (!res.ok) throw new Error(await res.text());
+                      showToast('Photo captured successfully!', 'success');
+                      fetchNodePhotos(node.id);
+                  } catch (err) {
+                      console.error('Capture failed:', err);
+                      showToast('Failed to pull image from node', 'error');
+                  } finally {
+                      btnCapture.innerHTML = '📸 Capture Now';
+                      btnCapture.style.opacity = '1';
+                      btnCapture.disabled = false;
+                  }
+              });
+          }
+      }
+
+      /* Fetch history from API */
+      fetchNodeHistory(node.id, trendClass, trendArrow);
+    }
+
+    async function fetchNodeHistory(nodeId, trendClass, trendArrow) {
+      const tbody = document.getElementById('drawerHistory');
+      if (!tbody) return;
+      try {
+        const res = await fetch(`${API_BASE}/node/${nodeId}/history`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const readings = await res.json();
+        /* API returns newest-first; reverse for chronological display */
+        const history = readings.reverse();
+        if (!history.length) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;">No history yet</td></tr>';
+          return;
+        }
+        tbody.innerHTML = history.map((h, i) => {
+          const prev = i > 0 ? history[i - 1] : h;
+          const time = new Date(h.timestamp).toLocaleTimeString();
+          return `
+              <tr data-m="${h.moisture}" data-t="${h.temperature}" data-b="${h.battery}" data-time="${time}">
+                <td>${time}</td>
+                <td>${h.moisture}% <span class="${trendClass(h.moisture, prev.moisture)}">${trendArrow(h.moisture, prev.moisture)}</span></td>
+                <td>${h.temperature}°C <span class="${trendClass(h.temperature, prev.temperature)}">${trendArrow(h.temperature, prev.temperature)}</span></td>
+                <td>${h.battery}%</td>
+              </tr>
+            `;
+        }).join('');
+
+        /* Store history for deferred chart rendering */
+        window._pendingHistoryData = history;
+
+        /* History row click → highlight + tooltip */
+        tbody.querySelectorAll('tr').forEach(row => {
+          row.addEventListener('click', (e) => {
+            tbody.querySelectorAll('tr').forEach(r => r.classList.remove('row-active'));
+            row.classList.add('row-active');
+            // Remove old tooltip
+            const old = document.querySelector('.history-tooltip');
+            if (old) old.remove();
+            // Show tooltip
+            const tip = document.createElement('div');
+            tip.className = 'history-tooltip';
+            tip.innerHTML = `
+              <div><span class="ht-label">Time</span> ${row.dataset.time}</div>
+              <div><span class="ht-label">Moisture</span> 💧 ${row.dataset.m}%</div>
+              <div><span class="ht-label">Temperature</span> 🌡️ ${row.dataset.t}°C</div>
+              <div><span class="ht-label">Battery</span> 🔋 ${row.dataset.b}%</div>
+            `;
+            document.body.appendChild(tip);
+            const rect = row.getBoundingClientRect();
+            tip.style.top = `${rect.top - tip.offsetHeight - 8}px`;
+            tip.style.left = `${Math.max(8, rect.left + rect.width / 2 - tip.offsetWidth / 2)}px`;
+            // Auto-dismiss
+            setTimeout(() => tip.remove(), 3000);
+          });
+        });
+      } catch (err) {
+        console.warn('History fetch failed:', err);
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;">Could not load history</td></tr>';
+      }
+    }
+
+    /* ===== HISTORY CHART (Canvas) ===== */
+    function drawHistoryChart(history) {
+      const canvas = document.getElementById('historyChart');
+      if (!canvas || !history.length) return;
+
+      // Hi-DPI support
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const W = rect.width;
+      const H = rect.height;
+
+      const pad = { top: 12, right: 12, bottom: 28, left: 36 };
+      const plotW = W - pad.left - pad.right;
+      const plotH = H - pad.top - pad.bottom;
+
+      // Series config
+      const series = [
+        { key: 'moisture',    color: '#22d3ee', visible: true },
+        { key: 'temperature', color: '#fbbf24', visible: true },
+        { key: 'battery',     color: '#a78bfa', visible: true },
+      ];
+
+      // Legend toggle
+      document.querySelectorAll('.chart-legend-item').forEach(item => {
+        item.style.opacity = '1';
+        item.onclick = () => {
+          const s = series.find(s => s.key === item.dataset.series);
+          if (s) {
+            s.visible = !s.visible;
+            item.style.opacity = s.visible ? '1' : '0.3';
+            draw();
+          }
+        };
       });
 
-      /* ===== INIT ===== */
-      render();
-    </script>
-  </body>
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // Compute Y range across all visible series
+        let yMin = Infinity, yMax = -Infinity;
+        series.forEach(s => {
+          if (!s.visible) return;
+          history.forEach(h => {
+            const v = h[s.key];
+            if (v < yMin) yMin = v;
+            if (v > yMax) yMax = v;
+          });
+        });
+        if (yMin === Infinity) { yMin = 0; yMax = 100; }
+        const yPad = (yMax - yMin) * 0.12 || 5;
+        yMin = Math.max(0, yMin - yPad);
+        yMax = yMax + yPad;
+
+        // Grid lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        const gridSteps = 4;
+        for (let i = 0; i <= gridSteps; i++) {
+          const y = pad.top + (plotH / gridSteps) * i;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, y);
+          ctx.lineTo(W - pad.right, y);
+          ctx.stroke();
+
+          // Y-axis label
+          const val = yMax - ((yMax - yMin) / gridSteps) * i;
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          ctx.font = '500 9px Inter, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(Math.round(val), pad.left - 6, y + 3);
+        }
+
+        // X-axis labels
+        const xLabelStep = Math.max(1, Math.floor(history.length / 5));
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.font = '500 9px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        for (let i = 0; i < history.length; i += xLabelStep) {
+          const x = pad.left + (i / (history.length - 1 || 1)) * plotW;
+          const time = new Date(history[i].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          ctx.fillText(time, x, H - 6);
+        }
+
+        // Draw each series
+        series.forEach(s => {
+          if (!s.visible) return;
+          const points = history.map((h, i) => ({
+            x: pad.left + (i / (history.length - 1 || 1)) * plotW,
+            y: pad.top + (1 - (h[s.key] - yMin) / (yMax - yMin || 1)) * plotH,
+          }));
+
+          // Gradient fill under curve
+          const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + plotH);
+          grad.addColorStop(0, s.color + '18');
+          grad.addColorStop(1, s.color + '02');
+          ctx.beginPath();
+          ctx.moveTo(points[0].x, pad.top + plotH);
+          points.forEach((p, i) => {
+            if (i === 0) { ctx.lineTo(p.x, p.y); return; }
+            const prev = points[i - 1];
+            const cpx = (prev.x + p.x) / 2;
+            ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+          });
+          ctx.lineTo(points[points.length - 1].x, pad.top + plotH);
+          ctx.closePath();
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Smooth line
+          ctx.beginPath();
+          points.forEach((p, i) => {
+            if (i === 0) { ctx.moveTo(p.x, p.y); return; }
+            const prev = points[i - 1];
+            const cpx = (prev.x + p.x) / 2;
+            ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+          });
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // End dot with glow
+          const last = points[points.length - 1];
+          ctx.beginPath();
+          ctx.arc(last.x, last.y, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = s.color;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(last.x, last.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = s.color + '30';
+          ctx.fill();
+        });
+      }
+
+      draw();
+    }
+
+    function closeNodeDrawer() {
+      drawerBackdrop.classList.remove('open');
+      nodeDrawer.classList.remove('open');
+      document.body.style.overflow = '';
+      const tip = document.querySelector('.history-tooltip');
+      if (tip) tip.remove();
+    }
+
+    drawerCloseBtn.addEventListener('click', closeNodeDrawer);
+    drawerBackdrop.addEventListener('click', closeNodeDrawer);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const lb = document.querySelector('.lightbox');
+        if (lb) { lb.remove(); return; }
+        closeNodeDrawer();
+      }
+    });
+
+    /* ===== PHOTO GRID FETCH ===== */
+    async function fetchNodePhotos(nodeId) {
+      const container = document.getElementById('drawerPhotos');
+      if (!container) return;
+      try {
+        const res = await fetch(`${API_BASE}/node/${nodeId}/photos`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const photos = await res.json();
+        if (!photos.length) {
+          container.innerHTML = '<div class="photo-empty">No photos captured yet</div>';
+          return;
+        }
+        container.innerHTML = photos.map(p => {
+            const imgUrl = p.url.startsWith('http') ? p.url : `${API_BASE}${p.url}`;
+            const ts = new Date(p.captured_at).toLocaleString();
+            return `
+            <div class="photo-card" onclick="openLightbox('${imgUrl}', '${ts}')">
+              <img src="${imgUrl}" alt="Capture" loading="lazy" />
+              <div class="photo-card-meta">
+                <span class="photo-dot"></span>
+                <span class="photo-time">${ts}</span>
+              </div>
+            </div>
+          `;
+          }).join('');
+      } catch (err) {
+        console.warn('Photo fetch failed:', err);
+        container.innerHTML = '<div class="photo-empty">Could not load photos</div>';
+      }
+    }
+
+    /* ===== LIGHTBOX ===== */
+    function openLightbox(src, timestamp) {
+      const lb = document.createElement('div');
+      lb.className = 'lightbox';
+      const tsHtml = timestamp ? `<div class="lightbox-timestamp">📷 ${timestamp}</div>` : '';
+      lb.innerHTML = `<img src="${src}" alt="Full size" />${tsHtml}<button class="lightbox-close">✕</button>`;
+      lb.addEventListener('click', (e) => {
+        if (e.target === lb || e.target.classList.contains('lightbox-close')) lb.remove();
+      });
+      document.body.appendChild(lb);
+    }
+
+    /* ===== EVENTS ===== */
+    statusFilter.addEventListener('change', render);
+    languageSelect.addEventListener('change', render);
+
+    /* Close modal on overlay click */
+    apiModal.addEventListener('click', (e) => {
+      if (e.target === apiModal) apiModal.classList.remove('active');
+    });
+
+    /* ===== INIT ===== */
+    fetchNodes();
+    setInterval(fetchNodes, 30000);
+  </script>
+</body>
+
 </html>
