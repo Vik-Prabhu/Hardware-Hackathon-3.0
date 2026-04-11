@@ -26,6 +26,8 @@ def init_db() -> None:
             node_id     TEXT    NOT NULL,
             moisture    REAL    NOT NULL,
             temperature REAL    NOT NULL,
+            humidity    REAL    NOT NULL,
+            light       REAL    NOT NULL,
             battery     REAL    NOT NULL,
             timestamp   TEXT    NOT NULL
         )
@@ -44,6 +46,16 @@ def init_db() -> None:
             node_id     TEXT    NOT NULL,
             filename    TEXT    NOT NULL,
             captured_at TEXT    NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS advisories (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            node_id     TEXT    NOT NULL,
+            advisory    TEXT    NOT NULL,
+            timestamp   TEXT    NOT NULL
         )
         """
     )

@@ -1502,6 +1502,7 @@
       <div class="actions">
         <a class="btn" href="/">🏠 Home</a>
         <a class="btn" href="/introduction/overview">📄 Docs</a>
+        <button id="btnOpenTestAi" class="btn" style="border-color: var(--accent-purple); color: var(--accent-purple);">🧪 Test AI Simulator</button>
         <button id="speak" class="btn primary">🔊 Speak All</button>
       </div>
     </header>
@@ -1583,6 +1584,39 @@
     </div>
   </div>
 
+  <!-- ===== AI TEST MODAL ===== -->
+  <div class="modal-overlay" id="aiTestModal">
+    <div class="modal" style="max-width: 520px;">
+      <h2>🧪 Test AI Analyzer</h2>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;">Submit arbitrary POST sensor data directly to the AI pipeline to preview diagnostics.</p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+         <label style="display:flex; flex-direction:column; font-size:0.8rem; color:var(--text-secondary);">Node ID
+            <input type="text" id="testNodeId" value="N-01" style="margin-top:4px; border:1px solid var(--border); border-radius:4px; padding:6px; background:rgba(0,0,0,0.3); color:#fff;" />
+         </label>
+         <label style="display:flex; flex-direction:column; font-size:0.8rem; color:var(--text-secondary);">Temperature (°C)
+            <input type="number" id="testTemp" value="38" style="margin-top:4px; border:1px solid var(--border); border-radius:4px; padding:6px; background:rgba(0,0,0,0.3); color:#fff;" />
+         </label>
+         <label style="display:flex; flex-direction:column; font-size:0.8rem; color:var(--text-secondary);">Humidity (%)
+            <input type="number" id="testHum" value="25" style="margin-top:4px; border:1px solid var(--border); border-radius:4px; padding:6px; background:rgba(0,0,0,0.3); color:#fff;" />
+         </label>
+         <label style="display:flex; flex-direction:column; font-size:0.8rem; color:var(--text-secondary);">Soil Moisture (%)
+            <input type="number" id="testMoist" value="10" style="margin-top:4px; border:1px solid var(--border); border-radius:4px; padding:6px; background:rgba(0,0,0,0.3); color:#fff;" />
+         </label>
+         <label style="display:flex; flex-direction:column; font-size:0.8rem; color:var(--text-secondary);">Light Level (lux)
+            <input type="number" id="testLight" value="85000" style="margin-top:4px; border:1px solid var(--border); border-radius:4px; padding:6px; background:rgba(0,0,0,0.3); color:#fff;" />
+         </label>
+      </div>
+
+      <div id="aiTestOutput" style="display:none; background:rgba(0,0,0,0.4); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border); font-family:var(--font-mono); font-size:0.75rem; color:var(--accent-cyan); margin-bottom:16px; white-space:pre-wrap; max-height:220px; overflow-y:auto;"></div>
+
+      <div class="modal-actions">
+        <button class="btn" id="cancelAiTest">Close</button>
+        <button class="btn primary" id="runAiTest" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border-color: var(--accent-purple); box-shadow: 0 4px 20px rgba(167, 139, 250, 0.4);">🚀 Send POST</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ===== DATA ===== */
     let nodes = [];
@@ -1626,6 +1660,8 @@
             hasCamera: meta.hasCamera || false,
             moisture: Math.round(r.moisture * 10) / 10,
             temperature: Math.round(r.temperature * 10) / 10,
+            humidity: Math.round(r.humidity * 10) / 10,
+            light: Math.round(r.light * 10) / 10,
             battery: Math.round(r.battery * 10) / 10,
             status,
             healthText: deriveHealthText(status, r.moisture, r.temperature),
@@ -1637,14 +1673,123 @@
       }
     }
 
-    /* ===== HUMAN-TONE ADVISORIES ===== */
-    const nodeAdvisories = {
-      'N-01': ["Moisture and temperature are both in the ideal range — stable all morning.", "No action needed. Continue the current care routine. 🌱"],
-      'N-02': ["Moisture has been dropping steadily and is now near the lower limit.", "Schedule a watering session soon before it enters the critical zone."],
-      'N-03': ["Moisture has fallen to 27% and temperature is running high at 36°C — signs of heat stress.", "Irrigate this bed immediately to prevent crop damage. ⚠️"],
-      'N-04': ["All readings have been steady this morning with no concerning trends.", "Keep up the current routine — no action needed. 👍"],
-      'N-05': ["Moisture is gradually declining and the nutrient stress signal is active.", "Consider adding compost or a nutrient supplement soon."]
-    };
+    function renderAdvisoryHtml(adv) {
+       if (!adv || (!adv.summary && !adv.problems)) return `<span class="adv-line">AI Output: ${JSON.stringify(adv)}</span>`;
+       
+       let severityColor = "var(--accent-cyan)";
+       if (adv.overall_severity === 'warning') severityColor = "#f59e0b";
+       if (adv.overall_severity === 'critical') severityColor = "#ef4444";
+       if (adv.overall_severity === 'healthy') severityColor = "#10b981";
+
+       let html = `<div style="display:flex; flex-direction:column; gap: 12px; font-size: 0.9rem;">`;
+       
+       if (adv.summary) {
+           html += `<div style="display:flex; align-items:center; gap: 8px;">
+                      ${adv.overall_severity ? `<span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:0.7rem; font-weight:700; color:#fff; background:${severityColor}; text-transform:uppercase;">${adv.overall_severity}</span>` : ''}
+                      <strong style="color:var(--text-primary);">${adv.summary}</strong>
+                    </div>`;
+       }
+                
+       if (adv.description) {
+          html += `<div style="color:var(--text-secondary); line-height:1.4;">${adv.description}</div>`;
+       }
+       
+       if (adv.problems && adv.problems.length > 0) {
+          html += `<div style="background:rgba(239,68,68,0.1); border-left:3px solid #ef4444; padding:8px; border-radius:4px;">
+                     <strong style="color:#ef4444; font-size:0.8rem; text-transform:uppercase;">Identified Issues:</strong>
+                     <ul style="margin:4px 0 0 20px; padding:0; color:var(--text-secondary);">`;
+          adv.problems.forEach(p => {
+             html += `<li><strong>${p.issue}:</strong> ${p.details}</li>`;
+          });
+          html += `</ul></div>`;
+       }
+       
+       if (adv.solutions && adv.solutions.length > 0) {
+          html += `<div style="background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:8px; border-radius:4px;">
+                     <strong style="color:#10b981; font-size:0.8rem; text-transform:uppercase;">Recommended Solutions:</strong>
+                     <ul style="margin:4px 0 0 20px; padding:0; color:var(--text-secondary);">`;
+          adv.solutions.forEach(s => {
+             html += `<li><strong>${s.action} <span style="font-size:0.7rem; opacity:0.8;">[${s.urgency}]</span>:</strong> ${s.details}</li>`;
+          });
+          html += `</ul></div>`;
+       }
+       
+       if (adv.predictions) {
+          html += `<div style="display:flex; flex-direction:column; gap:4px; font-size:0.85rem; background:rgba(255,255,255,0.02); padding:8px; border-radius:4px;">
+                     <strong style="color:var(--accent-purple);">🔮 Forecast</strong>
+                     ${adv.predictions.short_term ? `<div style="color:var(--text-secondary);"><strong>Short Term:</strong> ${adv.predictions.short_term}</div>` : ''}
+                     ${adv.predictions.long_term ? `<div style="color:var(--text-secondary);"><strong>Long Term:</strong> ${adv.predictions.long_term}</div>` : ''}
+                   </div>`;
+       }
+
+       if (adv.confidence) {
+          html += `<div style="text-align:right; font-size:0.7rem; color:var(--text-secondary); opacity:0.6;">Confidence: ${adv.confidence.toUpperCase()}</div>`;
+       }
+       
+       html += `</div>`;
+       return html;
+    }
+
+    async function fetchAiAdvisory(nodeId) {
+       const advBox = document.getElementById('drawerAdvisoryBox');
+       if (!advBox) return;
+       
+       advBox.innerHTML = '<div class="photo-loading">Fetching GreenNode AI Insights...</div>';
+       try {
+         const resp = await fetch(`${API_BASE}/node/${nodeId}/advisory`);
+         if (!resp.ok) throw new Error('Failed to fetch from backend');
+         
+         const data = await resp.json();
+         advBox.innerHTML = renderAdvisoryHtml(data.raw || data);
+       } catch (err) {
+         console.warn("AI fetch failed");
+         advBox.innerHTML = `<span class="adv-line" style="color:var(--text-secondary)">No AI report stored in database yet. Try running a diagnostic.</span>`;
+       }
+    }
+
+    async function forceAiAnalysis(nodeId) {
+       const advBox = document.getElementById('drawerAdvisoryBox');
+       if (!advBox) return;
+       
+       const node = nodes.find(n => n.id === nodeId);
+       if (!node) return;
+       
+       advBox.innerHTML = '<div class="photo-loading">Running AI Pipeline (this may take 1-3 mins)...</div>';
+       
+       // Build dynamic POST form data using whatever is currently displayed!
+       const formData = new FormData();
+       formData.append('node_id', node.id);
+       formData.append('temperature', node.temperature || 25);
+       formData.append('humidity', node.humidity || 50);
+       formData.append('soil_moisture', node.moisture || 40);
+       formData.append('light_level', node.light || 10000);
+       
+       // Try to attach the currently viewed image if it's a camera node
+       const latestImg = document.querySelector('#drawerPhotos img');
+       if (latestImg) {
+           try {
+               const imgResp = await fetch(latestImg.src);
+               const blob = await imgResp.blob();
+               formData.append('image', blob, 'snapshot.jpg');
+           } catch(e) { console.warn("Could not attach image blob to AI request", e); }
+       }
+
+       try {
+         // Triggers the heavy AI generation process on the backend
+         const resp = await fetch(`${API_BASE}/api/analyze`, { 
+             method: 'POST',
+             body: formData
+         });
+         if (!resp.ok) throw new Error('Failed to trigger AI Server');
+         
+         const data = await resp.json();
+         const adv = data.advisory || {};
+         advBox.innerHTML = renderAdvisoryHtml(adv);
+       } catch (err) {
+         console.warn("AI generation failed", err);
+         advBox.innerHTML = `<span class="adv-line">Error running AI.</span><span class="adv-line" style="color:var(--accent-red)">${err.message}</span>`;
+       }
+    }
 
     const messages = {
       English: [
@@ -1681,6 +1826,7 @@
     function getMoistureColor(v) { return v >= 50 ? 'green' : v >= 35 ? 'amber' : 'red'; }
     function getTempColor(v) { return v <= 30 ? 'green' : v <= 34 ? 'amber' : 'red'; }
     function getBatteryColor(v) { return v >= 70 ? 'green' : v >= 40 ? 'amber' : 'red'; }
+    function getLightColor(v) { return v >= 20000 ? 'green' : v >= 5000 ? 'amber' : 'red'; }
 
 
 
@@ -1736,6 +1882,16 @@
                 <span class="metric-label">🌡️ Temp</span>
                 <div class="metric-bar-track"><div class="metric-bar-fill ${getTempColor(n.temperature)}" style="width: ${Math.min(n.temperature / 45 * 100, 100)}%"></div></div>
                 <span class="metric-val">${n.temperature}°C</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">💨 Hum</span>
+                <div class="metric-bar-track"><div class="metric-bar-fill blue" style="width: ${n.humidity}%"></div></div>
+                <span class="metric-val">${n.humidity}%</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">☀️ Light</span>
+                <div class="metric-bar-track"><div class="metric-bar-fill ${getLightColor(n.light)}" style="width: ${Math.min((n.light/100000)*100, 100)}%"></div></div>
+                <span class="metric-val">${n.light >= 1000 ? Math.round(n.light/1000)+'k' : Math.round(n.light)}lx</span>
               </div>
               <div class="metric">
                 <span class="metric-label">🔋 Battery</span>
@@ -1942,7 +2098,6 @@
     const drawerCloseBtn = document.getElementById('drawerClose');
 
     function openNodeDrawer(node) {
-      const advisoryArr = nodeAdvisories[node.id] || ['No advisory available.', ''];
       const statusIcons = { healthy: '✅', warning: '⚠️', critical: '🚨' };
 
       function trendClass(curr, prev) {
@@ -1964,7 +2119,7 @@
         ? `<div class="drawer-tab-panel" id="tab-camera">
              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
                <div style="font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase;">Recent Captures</div>
-               <button id="btnCapturePhoto" class="pill" style="cursor:pointer; background:rgba(34, 211, 238, 0.1); color:var(--primary); border:1px solid var(--primary); padding: 4px 12px; transition: all 0.2s;">📸 Capture Now</button>
+               <button class="pill trigger-capture" style="cursor:pointer; background:rgba(34, 211, 238, 0.1); color:var(--primary); border:1px solid var(--primary); padding: 4px 12px; transition: all 0.2s;">📸 Capture Now</button>
              </div>
              <div class="photo-grid" id="drawerPhotos">
                <div class="photo-loading">Loading photos…</div>
@@ -2003,6 +2158,16 @@
                   <div class="dr-label">Temperature</div>
                 </div>
                 <div class="drawer-reading">
+                  <div class="dr-icon">💨</div>
+                  <div class="dr-value">${node.humidity}%</div>
+                  <div class="dr-label">Humidity</div>
+                </div>
+                <div class="drawer-reading">
+                  <div class="dr-icon">☀️</div>
+                  <div class="dr-value">${Math.round(node.light)} lx</div>
+                  <div class="dr-label">Light</div>
+                </div>
+                <div class="drawer-reading">
                   <div class="dr-icon">🔋</div>
                   <div class="dr-value">${node.battery}%</div>
                   <div class="dr-label">Battery</div>
@@ -2010,10 +2175,15 @@
               </div>
             </div>
             <div class="drawer-section">
-              <div class="drawer-section-title">Advisory</div>
-              <div class="drawer-advisory">
-                <span class="adv-line">${advisoryArr[0]}</span>
-                ${advisoryArr[1] ? `<span class="adv-line">${advisoryArr[1]}</span>` : ''}
+              <div class="drawer-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                Global AI Advisory 
+                <div style="display:flex; gap: 8px;">
+                  ${node.hasCamera ? `<button class="pill trigger-capture" style="cursor:pointer; background:rgba(34, 211, 238, 0.1); color:var(--accent-cyan); border:1px solid var(--accent-cyan);">📸 Capture Photo</button>` : ''}
+                  <button onclick="forceAiAnalysis('${node.id}')" class="pill" style="cursor:pointer; background:rgba(167, 139, 250, 0.1); color:var(--accent-purple); border:1px solid var(--accent-purple);">🤖 Generate AI Report</button>
+                </div>
+              </div>
+              <div class="drawer-advisory" id="drawerAdvisoryBox">
+                <div class="photo-loading">Loading AI analysis...</div>
               </div>
             </div>
           </div>
@@ -2034,6 +2204,12 @@
                   <div class="chart-legend-item" data-series="temperature">
                     <span class="chart-legend-dot" style="background: #fbbf24;"></span> Temp
                   </div>
+                  <div class="chart-legend-item" data-series="humidity">
+                    <span class="chart-legend-dot" style="background: #34d399;"></span> Hum
+                  </div>
+                  <div class="chart-legend-item" data-series="light">
+                    <span class="chart-legend-dot" style="background: #fcd34d;"></span> Light
+                  </div>
                   <div class="chart-legend-item" data-series="battery">
                     <span class="chart-legend-dot" style="background: #a78bfa;"></span> Battery
                   </div>
@@ -2044,7 +2220,7 @@
               <div class="drawer-section-title">Recent Readings</div>
               <table class="drawer-history">
                 <thead>
-                  <tr><th>Time</th><th>Moisture</th><th>Temp</th><th>Battery</th></tr>
+                  <tr><th>Time</th><th>Moisture</th><th>Temp</th><th>Humidity</th><th>Light</th><th>Battery</th></tr>
                 </thead>
                 <tbody id="drawerHistory"><tr><td colspan="4" style="text-align:center;padding:16px;">Loading…</td></tr></tbody>
               </table>
@@ -2078,8 +2254,8 @@
           fetchNodePhotos(node.id);
           
           /* Pull Camera Logic */
-          const btnCapture = document.getElementById('btnCapturePhoto');
-          if (btnCapture) {
+          const captureBtns = document.querySelectorAll('.trigger-capture');
+          captureBtns.forEach(btnCapture => {
               btnCapture.addEventListener('click', async () => {
                   btnCapture.innerHTML = '⏳ Capturing...';
                   btnCapture.style.opacity = '0.7';
@@ -2093,12 +2269,12 @@
                       console.error('Capture failed:', err);
                       showToast('Failed to pull image from node', 'error');
                   } finally {
-                      btnCapture.innerHTML = '📸 Capture Now';
+                      btnCapture.innerHTML = '📸 Capture Photo';
                       btnCapture.style.opacity = '1';
                       btnCapture.disabled = false;
                   }
               });
-          }
+          });
       }
 
       /* Fetch history from API */
@@ -2122,14 +2298,16 @@
           const prev = i > 0 ? history[i - 1] : h;
           const time = new Date(h.timestamp).toLocaleTimeString();
           return `
-              <tr data-m="${h.moisture}" data-t="${h.temperature}" data-b="${h.battery}" data-time="${time}">
+              <tr data-m="${h.moisture}" data-t="${h.temperature}" data-h="${h.humidity}" data-l="${h.light}" data-b="${h.battery}" data-time="${time}">
                 <td>${time}</td>
                 <td>${h.moisture}% <span class="${trendClass(h.moisture, prev.moisture)}">${trendArrow(h.moisture, prev.moisture)}</span></td>
                 <td>${h.temperature}°C <span class="${trendClass(h.temperature, prev.temperature)}">${trendArrow(h.temperature, prev.temperature)}</span></td>
+                <td>${h.humidity}% <span class="${trendClass(h.humidity, prev.humidity)}">${trendArrow(h.humidity, prev.humidity)}</span></td>
+                <td>${Math.round(h.light)}lx <span class="${trendClass(h.light, prev.light)}">${trendArrow(h.light, prev.light)}</span></td>
                 <td>${h.battery}%</td>
               </tr>
             `;
-        }).join('');
+        }).reverse().join('');
 
         /* Store history for deferred chart rendering */
         window._pendingHistoryData = history;
@@ -2149,6 +2327,8 @@
               <div><span class="ht-label">Time</span> ${row.dataset.time}</div>
               <div><span class="ht-label">Moisture</span> 💧 ${row.dataset.m}%</div>
               <div><span class="ht-label">Temperature</span> 🌡️ ${row.dataset.t}°C</div>
+              <div><span class="ht-label">Humidity</span> 💨 ${row.dataset.h}%</div>
+              <div><span class="ht-label">Light</span> ☀️ ${row.dataset.l}lx</div>
               <div><span class="ht-label">Battery</span> 🔋 ${row.dataset.b}%</div>
             `;
             document.body.appendChild(tip);
@@ -2188,6 +2368,8 @@
       const series = [
         { key: 'moisture',    color: '#22d3ee', visible: true },
         { key: 'temperature', color: '#fbbf24', visible: true },
+        { key: 'humidity',    color: '#34d399', visible: true },
+        { key: 'light',       color: '#fcd34d', visible: true },
         { key: 'battery',     color: '#a78bfa', visible: true },
       ];
 
@@ -2378,6 +2560,60 @@
     /* ===== INIT ===== */
     fetchNodes();
     setInterval(fetchNodes, 30000);
+    /* ===== AI TEST MODAL LOGIC ===== */
+    const testModal = document.getElementById('aiTestModal');
+    const btnOpenTestAi = document.getElementById('btnOpenTestAi');
+    const cancelAiTest = document.getElementById('cancelAiTest');
+    const runAiTest = document.getElementById('runAiTest');
+    const aiTestOutput = document.getElementById('aiTestOutput');
+
+    btnOpenTestAi.addEventListener('click', () => {
+       testModal.classList.add('active');
+       aiTestOutput.style.display = 'none';
+    });
+
+    cancelAiTest.addEventListener('click', () => testModal.classList.remove('active'));
+    testModal.addEventListener('click', (e) => {
+       if (e.target === testModal) testModal.classList.remove('active');
+    });
+
+    runAiTest.addEventListener('click', async () => {
+       runAiTest.textContent = '⏳ Sending POST...';
+       runAiTest.classList.add('loading');
+       aiTestOutput.style.display = 'block';
+       aiTestOutput.innerHTML = 'Connecting to http://localhost:8000/api/analyze...';
+       aiTestOutput.style.color = 'var(--text-secondary)';
+
+       const formData = new FormData();
+       formData.append('node_id', document.getElementById('testNodeId').value);
+       formData.append('temperature', document.getElementById('testTemp').value);
+       formData.append('humidity', document.getElementById('testHum').value);
+       formData.append('soil_moisture', document.getElementById('testMoist').value);
+       formData.append('light_level', document.getElementById('testLight').value);
+
+       try {
+          const resp = await fetch(`${API_BASE}/api/analyze`, {
+              method: 'POST',
+              body: formData
+          });
+
+          const data = await resp.json();
+          if (!resp.ok) {
+              aiTestOutput.style.color = 'var(--accent-red)';
+              aiTestOutput.innerHTML = `HTTP ${resp.status}\n` + JSON.stringify(data, null, 2);
+          } else {
+              aiTestOutput.style.color = 'var(--accent-cyan)';
+              aiTestOutput.innerHTML = "=== SUCCESS ===\n" + JSON.stringify(data, null, 2);
+          }
+       } catch (err) {
+          aiTestOutput.style.color = 'var(--accent-red)';
+          aiTestOutput.innerHTML = "NETWORK ERROR:\n" + err.message;
+       } finally {
+          runAiTest.textContent = '🚀 Send POST';
+          runAiTest.classList.remove('loading');
+       }
+    });
+
   </script>
 </body>
 

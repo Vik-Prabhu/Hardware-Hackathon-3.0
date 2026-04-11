@@ -39,6 +39,8 @@ class SensorNode:
         # random baselines
         self.moisture = random.uniform(40, 70)
         self.temperature = random.uniform(28, 35)
+        self.humidity = random.uniform(40, 80)
+        self.light = random.uniform(8000, 120000)
         self.battery = random.uniform(60, 90)
 
     def tick(self):
@@ -51,6 +53,14 @@ class SensorNode:
         self.temperature += random.gauss(0, 0.3)
         self.temperature = max(20, min(45, self.temperature))
 
+        # Humidity: random walk
+        self.humidity += random.gauss(0, 1.0)
+        self.humidity = max(20, min(100, self.humidity))
+
+        # Light: random walk
+        self.light += random.gauss(0, 1000)
+        self.light = max(0, min(120000, self.light))
+
         # Battery: very slow drain
         self.battery -= random.uniform(0.02, 0.08)
         self.battery = max(0, min(100, self.battery))
@@ -59,6 +69,8 @@ class SensorNode:
         return {
             "moisture": round(self.moisture, 1),
             "temperature": round(self.temperature, 1),
+            "humidity": round(self.humidity, 1),
+            "light": round(self.light, 1),
             "battery": round(self.battery, 1),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
@@ -73,6 +85,8 @@ async def run_node(session: aiohttp.ClientSession, node: SensorNode,
     print(f"  🌱 {node.node_id}  baseline → "
           f"moisture={node.moisture:.1f}%  "
           f"temp={node.temperature:.1f}°C  "
+          f"hum={node.humidity:.1f}%  "
+          f"light={node.light:.1f}lx  "
           f"battery={node.battery:.1f}%")
 
     while True:
@@ -84,6 +98,8 @@ async def run_node(session: aiohttp.ClientSession, node: SensorNode,
                     print(f"  ✅ {node.node_id}  "
                           f"m={data['moisture']}%  "
                           f"t={data['temperature']}°C  "
+                          f"h={data['humidity']}%  "
+                          f"l={data['light']}lx  "
                           f"b={data['battery']}%")
                 else:
                     body = await resp.text()

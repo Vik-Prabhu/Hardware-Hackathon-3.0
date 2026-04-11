@@ -148,12 +148,13 @@ void handleCapture() {
   if (isnan(temperature)) temperature = 0.0;
   if (isnan(humidity))    humidity = 0.0;
 
-  // Moisture & battery are placeholders until external ADC is wired
+  // Moisture, light, & battery are placeholders until external ADC is wired
   float moisture = humidity;   // Use DHT humidity as a proxy for now
+  float light    = 10000.0;    // Dummy lux value
   float battery  = 100.0;     // No ADC available — hardcode
 
-  Serial.printf("[SENS] temp=%.1f°C  humidity=%.1f%%  (bat=%.0f%% placeholder)\n",
-                temperature, humidity, battery);
+  Serial.printf("[SENS] temp=%.1f°C  hum=%.1f%%  light=%.0flx  (bat=%.0f%% placeholder)\n",
+                temperature, humidity, light, battery);
 
   // --- Capture photo ---
   if (!cameraReady) {
@@ -183,9 +184,11 @@ void handleCapture() {
   // --- Send response ---
   localServer.sendHeader("Access-Control-Allow-Origin", "*");
   localServer.sendHeader("Access-Control-Expose-Headers",
-                         "X-Moisture, X-Temperature, X-Battery, X-Node-ID");
+                         "X-Moisture, X-Temperature, X-Humidity, X-Light, X-Battery, X-Node-ID");
   localServer.sendHeader("X-Moisture", String(moisture, 1));
   localServer.sendHeader("X-Temperature", String(temperature, 1));
+  localServer.sendHeader("X-Humidity", String(humidity, 1));
+  localServer.sendHeader("X-Light", String(light, 1));
   localServer.sendHeader("X-Battery", String(battery, 1));
   localServer.sendHeader("X-Node-ID", NODE_ID);
 

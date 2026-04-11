@@ -1,283 +1,229 @@
-/* 
- * 🌿 Plantation Monitoring Node — GlyphC3 (ESP32-C3)
- * Board: GlyphC3 by PCBCupid
- * 
- * Features:
- * - Ultra-Low Power Deep Sleep Architecture
- * - RTC-backed Fast WiFi Connect
- * - Adaptive Sleep Intervals (Local & Server Override)
- * - Auto Sensor Power Switching via MOSFET
- */
-
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <DHT.h>
 #include <ArduinoJson.h>
-#include <esp_sleep.h>
+#include <time.h>              // ← added for NTP
+#include <ESPmDNS.h>
 
 // ==========================================
-// PIN CONFIG BLOCK (Clearly labelled)
+// PIN CONFIG BLOCK
 // ==========================================
-#define PIN_SOIL_MOISTURE   4    // analog ADC pin
-#define PIN_LDR             3    // analog ADC pin  
-#define PIN_DHT             5    // digital pin
-#define SENSOR_POWER_PIN    2    // GPIO that powers all sensors via MOSFET
+#define PIN_SOIL_MOISTURE   3
+#define PIN_LDR             2
+#define PIN_DHT             9
 #define DHT_TYPE            DHT11
 
 // ==========================================
-// SLEEP CONFIG BLOCK
+// SEND INTERVAL CONFIG
 // ==========================================
-#define SLEEP_NORMAL_MIN    30   // minutes between reads in normal state
-#define SLEEP_CRITICAL_MIN  5    // minutes if sensor value is critical
-#define MOISTURE_CRITICAL   25   // below this = critical (%), sleep less
+#define SEND_INTERVAL_NORMAL_MS    (30UL * 1000)
+#define SEND_INTERVAL_CRITICAL_MS  (5UL  * 1000)
+#define MOISTURE_CRITICAL          25
 
 // ==========================================
-// NETWORK CONFIG BLOCK 
+// NETWORK CONFIG
 // ==========================================
-#define WIFI_SSID           "your_ssid"
-#define WIFI_PASSWORD       "your_password"
-#define SERVER_IP           "192.168.x.x"
-#define SERVER_PORT         8000
-#define NODE_ID             "N-02"
+#define WIFI_SSID     "Vik"
+#define WIFI_PASSWORD "qwertyui"
+#define SERVER_HOST   "vikram-Vivobook-Go.local"
+#define SERVER_PORT   8000
+#define NODE_ID       "N-02"
 
-// Constraints
-const unsigned long MAX_AWAKE_MS  = 20000; // Never stay awake > 20s
-const unsigned long HTTP_TIMEOUT  = 5000;
-unsigned long bootTime = 0;
-
-// ==========================================
-// RTC MEMORY (Preserved in deep sleep)
-// ==========================================
-RTC_DATA_ATTR int rtc_wifi_channel = 0;
-RTC_DATA_ATTR uint8_t rtc_bssid[6] = {0};
-RTC_DATA_ATTR bool rtc_has_wifi_data = false;
+const unsigned long HTTP_TIMEOUT = 5000;
 
 // ==========================================
 // GLOBALS
 // ==========================================
 DHT dht(PIN_DHT, DHT_TYPE);
+unsigned long nextSendTime   = 0;
+unsigned long sendIntervalMs = SEND_INTERVAL_NORMAL_MS;
 
 struct SensorData {
   float temperature;
   float humidity;
-  int moisture;
-  int light;
-  int battery;
+  float moisture;   // ← now float
+  float light;      // ← now float (lux)
+  float battery;    // ← now float (voltage)
 };
 
 // ==========================================
-// UTILS
+// NTP
 // ==========================================
-void goToSleep(int minutes) {
-  unsigned long awakeTime = millis() - bootTime;
-  Serial.printf("\n[POWER] Awake time: %lu ms\n", awakeTime);
-  Serial.printf("[POWER] 💤 Going to deep sleep for %d minutes...\n", minutes);
-  
-  WiFi.disconnect(true);
-  
-  uint64_t sleepTime_us = (uint64_t)minutes * 60 * 1000000ULL;
-  esp_sleep_enable_timer_wakeup(sleepTime_us);
-  esp_deep_sleep_start();
-}
-
-void checkTimeout() {
-  if (millis() - bootTime >= MAX_AWAKE_MS) {
-    Serial.println("\n[POWER] ⏰ Max awake time reached (20s). Forcing sleep!");
-    goToSleep(SLEEP_NORMAL_MIN); // Fallback to normal if timed out
+void syncTime() {
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  Serial.print("[TIME] Syncing NTP");
+  struct tm t;
+  unsigned long start = millis();
+  while (!getLocalTime(&t)) {
+    if (millis() - start > 10000) {
+      Serial.println("\n[TIME] ✘ NTP sync failed.");
+      return;
+    }
+    delay(200);
+    Serial.print(".");
   }
+  Serial.println("\n[TIME] ✔ Time synced.");
+}
+
+// Returns ISO 8601 string e.g. "2026-04-11T12:00:00Z"
+String getISOTimestamp() {
+  struct tm t;
+  if (!getLocalTime(&t)) return "1970-01-01T00:00:00Z"; // fallback
+  char buf[25];
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &t);
+  return String(buf);
 }
 
 // ==========================================
-// LOGIC
+// WiFi
 // ==========================================
+void ensureWiFiConnected() {
+  if (WiFi.status() == WL_CONNECTED) return;
 
-void printWakeReason() {
-  esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
-  Serial.print("[POWER] Wakeup Reason: ");
-  switch(wakeup_reason) {
-    case ESP_SLEEP_WAKEUP_TIMER: Serial.println("Timer"); break;
-    default: Serial.println("Power-on / Other"); break;
+  Serial.print("[WIFI] (Re)connecting");
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED) {
+    if (millis() - start > 10000) {
+      Serial.println("\n[WIFI] ✘ Timeout — will retry next cycle.");
+      return;
+    }
+    delay(200);
+    Serial.print(".");
   }
+  Serial.printf("\n[WIFI] ✔ Connected! IP: %s\n", WiFi.localIP().toString().c_str());
 }
 
+// ==========================================
+// SENSORS
+// ==========================================
 SensorData readSensors() {
   SensorData data;
 
-  Serial.println("[SENSOR] Powering ON sensors...");
-  digitalWrite(SENSOR_POWER_PIN, HIGH);
-  
-  // Wait 1 second for sensor stabilisation
-  delay(1000); 
-
-  // Initialize DHT here after power is on
-  dht.begin();
-  
-  data.humidity = dht.readHumidity();
+  data.humidity    = dht.readHumidity();
   data.temperature = dht.readTemperature();
-  if (isnan(data.humidity)) data.humidity = 0;
-  if (isnan(data.temperature)) data.temperature = 0;
+  if (isnan(data.humidity))    data.humidity    = 0.0;
+  if (isnan(data.temperature)) data.temperature = 0.0;
 
-  // Read analog value (ESP32-C3 ADC is 12-bit max 4095)
-  int rawSoil = analogRead(PIN_SOIL_MOISTURE);
-  data.moisture = map(rawSoil, 4095, 0, 0, 100);
-  data.moisture = constrain(data.moisture, 0, 100);
+  int rawSoil   = analogRead(PIN_SOIL_MOISTURE);
+  data.moisture = (float)constrain(map(rawSoil, 4095, 0, 0, 100), 0, 100); // ← cast to float
 
-  int rawLDR = analogRead(PIN_LDR);
-  data.light = map(rawLDR, 4095, 0, 0, 100);
-  data.light = constrain(data.light, 0, 100);
+  int rawLDR  = analogRead(PIN_LDR);
+  // Map LDR to dummy lux range (0 to 100,000)
+  data.light  = (float)constrain(map(rawLDR, 4095, 0, 0, 100000), 0, 100000);
 
-  data.battery = 100; // Hardcoded fallback
+  data.battery = 3.7; // ← hardcoded voltage; swap with real ADC read if you have a divider
 
-  Serial.println("[SENSOR] Powering OFF sensors immediately.");
-  digitalWrite(SENSOR_POWER_PIN, LOW); // Save power instantly
-  
-  Serial.printf("[SENSOR] Temp: %.1fC | Hum: %.1f%% | Soil: %d%% | Light: %d%%\n",
+  Serial.printf("[SENSOR] Temp: %.1f°C | Hum: %.1f%% | Soil: %.1f%% | Light: %.0flx\n",
                 data.temperature, data.humidity, data.moisture, data.light);
-
   return data;
 }
 
-bool connectWiFiFast() {
-  Serial.print("[WIFI] Connecting");
-  
-  WiFi.mode(WIFI_STA);
-
-  if (rtc_has_wifi_data) {
-    Serial.printf(" (Fast Connect CH: %d BSSID: %02X:%02X:%02X:%02X:%02X:%02X)\n", 
-                  rtc_wifi_channel, rtc_bssid[0], rtc_bssid[1], rtc_bssid[2], 
-                  rtc_bssid[3], rtc_bssid[4], rtc_bssid[5]);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD, rtc_wifi_channel, rtc_bssid);
-  } else {
-    Serial.println(" (Full Scan)");
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+// ==========================================
+// HTTP POST
+// ==========================================
+long sendData(SensorData data) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[HTTP] ✘ No WiFi, skipping POST.");
+    return -1;
   }
 
-  unsigned long wifiStart = millis();
-  while (WiFi.status() != WL_CONNECTED) {
-    checkTimeout();
-    if (millis() - wifiStart > 10000) {
-      Serial.println("\n[WIFI] ✘ Connection timeout (10s)");
-      return false; // Failed
-    }
-    delay(100);
-    Serial.print(".");
-  }
-
-  Serial.println("\n[WIFI] ✔ Connected!");
-  
-  // Save credentials to RTC if we didn't have them
-  if (!rtc_has_wifi_data) {
-    rtc_wifi_channel = WiFi.channel();
-    memcpy(rtc_bssid, WiFi.BSSID(), 6);
-    rtc_has_wifi_data = true;
-    Serial.println("[WIFI] ✔ Saved BSSID/Channel to RTC memory.");
-  }
-  
-  return true;
-}
-
-int sendDataAndGetSleepParam(SensorData data) {
   HTTPClient http;
-  String url = "http://" + String(SERVER_IP) + ":" + String(SERVER_PORT) + "/node/" + String(NODE_ID) + "/sensor";
-  int nextSleepOverride = -1;
-  
+  String url = "http://" + String(SERVER_HOST) + ":" + String(SERVER_PORT)
+               + "/node/" + String(NODE_ID) + "/sensor";
+
   http.begin(url);
   http.setTimeout(HTTP_TIMEOUT);
   http.addHeader("Content-Type", "application/json");
 
-  // Construct JSON
+  // Build payload matching server schema exactly
   String payload = "{";
-  payload += "\"moisture\":" + String(data.moisture) + ",";
-  payload += "\"temperature\":" + String(data.temperature) + ",";
-  payload += "\"humidity\":" + String(data.humidity) + ",";
-  payload += "\"light\":" + String(data.light) + ",";
-  payload += "\"battery\":" + String(data.battery) + ",";
-  payload += "\"timestamp\":" + String(millis());
+  payload += "\"moisture\":"    + String(data.moisture, 1)    + ",";  // e.g. 45.0
+  payload += "\"temperature\":" + String(data.temperature, 1) + ",";  // e.g. 26.2
+  payload += "\"humidity\":"    + String(data.humidity, 1)    + ",";  // e.g. 60.0
+  payload += "\"light\":"       + String(data.light, 1)       + ",";  // e.g. 10000.0
+  payload += "\"battery\":"     + String(data.battery, 1)     + ",";  // e.g. 3.7
+  payload += "\"timestamp\":\""  + getISOTimestamp()          + "\""; // ← ISO string
   payload += "}";
 
-  Serial.printf("[HTTP] POSTing to %s\n", url.c_str());
-  
+  Serial.printf("[HTTP] Payload: %s\n", payload.c_str());
   int httpCode = http.POST(payload);
-  
+
+  long serverIntervalMs = -1;
+
   if (httpCode > 0) {
-    Serial.printf("[HTTP] ✔ Response Code: %d\n", httpCode);
-    
-    // Check for next_sleep_min directive
+    Serial.printf("[HTTP] ✔ Response: %d\n", httpCode);
     String response = http.getString();
-    
+
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, response);
-    
-    if (!error && doc.containsKey("next_sleep_min")) {
-      nextSleepOverride = doc["next_sleep_min"].as<int>();
-      Serial.printf("[HTTP] 📡 Server requested sleep override: %d mins\n", nextSleepOverride);
+    if (!deserializeJson(doc, response) && doc.containsKey("next_sleep_min")) {
+      int mins = doc["next_sleep_min"].as<int>();
+      serverIntervalMs = (long)mins * 60 * 1000;
+      Serial.printf("[HTTP] 📡 Server interval override: %d min\n", mins);
     }
   } else {
     Serial.printf("[HTTP] ✘ POST failed: %s\n", http.errorToString(httpCode).c_str());
   }
 
   http.end();
-  return nextSleepOverride;
+  return serverIntervalMs;
 }
 
-
 // ==========================================
-// MAIN BOOT SEQUENCE
+// SETUP
 // ==========================================
 void setup() {
-  bootTime = millis();
-  
   Serial.begin(115200);
-  delay(100); // Give serial time to attach
-  Serial.println("\n\n==========================================");
-  Serial.println("  GlyphC3 Ultra-Low Power Node Booting  ");
+  delay(100);
+  Serial.println("\n==========================================");
+  Serial.println("  GlyphC3 Continuous Monitoring Node     ");
   Serial.println("==========================================");
 
-  // 1. PIN SETUP & WAKE REASON
-  pinMode(SENSOR_POWER_PIN, OUTPUT);
-  digitalWrite(SENSOR_POWER_PIN, LOW); // ensure off initially
   analogReadResolution(12);
+  dht.begin();
+
+  ensureWiFiConnected();
   
-  printWakeReason();
-  
-  // 2. READ SENSORS
-  SensorData sd = readSensors();
-  checkTimeout();
-  
-  // 3. CONNECT WIFI
-  bool wifiConnected = connectWiFiFast();
-  checkTimeout();
-  
-  // 4. SEND DATA & CALCULATE NEXT SLEEP
-  int sleepDuration = SLEEP_NORMAL_MIN;
-  
-  if (sd.moisture < MOISTURE_CRITICAL) {
-     sleepDuration = SLEEP_CRITICAL_MIN;
-     Serial.printf("[LOGIC] Moisture critical (%d%%). Using short sleep interval.\n", sd.moisture);
-  }
-  
-  if (wifiConnected) {
-    int serverSleepOverride = sendDataAndGetSleepParam(sd);
-    
-    // Handle HTTP Retry (once)
-    if (serverSleepOverride == -1) {
-       Serial.println("[HTTP] Retry attempt in 1 second...");
-       delay(1000); // short wait before retry
-       checkTimeout();
-       serverSleepOverride = sendDataAndGetSleepParam(sd);
-    }
-    
-    if (serverSleepOverride > 0) {
-       sleepDuration = serverSleepOverride;
-    }
+  // Set up mDNS so we can resolve the server's .local hostname
+  if (MDNS.begin("green-node-02")) {
+    Serial.println("[mDNS] ✔ Responder started: green-node-02.local");
   } else {
-    Serial.println("[LOGIC] Skipping POST due to WiFi failure.");
+    Serial.println("[mDNS] ✘ failed to start");
   }
 
-  // 5. GO TO DEEP SLEEP (Disconnects WiFi automatically)
-  goToSleep(sleepDuration);
+  syncTime();               // ← sync clock right after WiFi connects
 }
 
+// ==========================================
+// LOOP
+// ==========================================
 void loop() {
-  // Empty - Node goes to deep sleep at the end of setup()
+  if (millis() < nextSendTime) return;
+
+  ensureWiFiConnected();
+
+  SensorData sd = readSensors();
+
+  sendIntervalMs = (sd.moisture < MOISTURE_CRITICAL)
+                   ? SEND_INTERVAL_CRITICAL_MS
+                   : SEND_INTERVAL_NORMAL_MS;
+
+  if (sd.moisture < MOISTURE_CRITICAL)
+    Serial.printf("[LOGIC] ⚠ Moisture critical (%.1f%%). Fast interval active.\n", sd.moisture);
+
+  long serverInterval = sendData(sd);
+
+  if (serverInterval == -1) {
+    Serial.println("[HTTP] Retrying in 1s...");
+    delay(1000);
+    serverInterval = sendData(sd);
+  }
+
+  if (serverInterval > 0)
+    sendIntervalMs = (unsigned long)serverInterval;
+
+  nextSendTime = millis() + sendIntervalMs;
+  Serial.printf("[LOOP] Next send in %lu seconds.\n\n", sendIntervalMs / 1000);
 }
