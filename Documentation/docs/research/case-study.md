@@ -1,41 +1,118 @@
-# Case Study: Green Node Deployment
+---
+title: From Prototype to Product
+description: How we evaluated our plant health monitoring system against a real-world product framework
+sidebar_position: 3
+---
 
-## Problem Statement
+# From Prototype to Product
 
-Plant maintenance across large sites currently runs on **fixed schedules** rather than actual plant needs. Whether deployed on a highway median, a commercial nursery, or an urban campus, watering and inspecting strict calendar cycles yields the same destructive results:
-- **Heat Wave & Cold Snap Blindness:** Plants suffer during temperature spikes. Compounding this, many competitor battery-only sensors die during cold snaps, requiring expensive manual labor to replace them.
-- **Inefficient Wandering:** Maintenance workers inspect plants in order of physical encounter, wasting hours on healthy vegetation while stressed plants go unnoticed.
-- **Monsoon Overwatering:** Irrigating blindly on schedule during heavy rains causes root rot and massive municipal water waste.
-- **Undetected Disease:** Fungal infections and foliar stress often cause irreversible damage before being visibly identified by scheduled patrols.
-- **Data & Alert Fatigue:** Even when modern solutions exist, workers are overwhelmed with raw data (e.g., percentages of soil moisture) rather than actionable insights. Field UIs often fail due to lack of offline functionality in dead zones, and standard colors consistently wash out under the midday sun.
+Building something that works in a hackathon and building something that works in a field
+for a paying customer are very different problems. This section documents how we stress-tested
+our system against a structured product thinking framework — to be honest about what we've
+built, what it's missing, and how it could scale.
 
-## Proposed Solution
+---
 
-Green Node is an intelligent, accessible (sub-₹2,400) sensor platform intended to embed precision intelligence wherever plants exist. It serves to fundamentally bridge the adoption gap where currently only 10% of smallholder farmers utilize digital agricultural services.
+## The Three Lenses
 
-Instead of relying on cloud assumptions, Green Node conducts localized smart irrigation decisions using real-time soil moisture correlated with forecast APIs. More importantly, the central dashboard directly solves "Data Fatigue" by parsing node distress signals into optimized, actionable inspection paths for workers—resolving labor waste in horticulture.
+We evaluated the system through three lenses before calling it a product.
 
-## Implementation
+**Customer Lens** — Does it actually help the user succeed?
+Our target users are farmers and greenhouse managers who don't have time for manual
+crop inspection. The system needs to surface the right information at the right time,
+without requiring the user to interpret raw sensor data themselves.
 
-The underlying technology focuses ruthlessly on low-cost edge efficiency, explicitly avoiding the fatal flaws of current multi-hundred dollar commercial models:
-- **Processing & Connectivity:** An ESP32-C3 queries OpenWeatherMap APIs. By leveraging local networks and avoiding traditional cellular IoT (LTE-M/NB-IoT), Green Node bypasses the $2–$10 high recurring monthly fees of existing systems, making scale financially possible.
-- **Microclimate Sensing:** Dual DHT11 sensors measure thermal variances at the canopy and ground level, explicitly avoiding the trap of low-cost "NPK" EC sensors that yield highly inaccurate readings without rigorous local soil calibration.
-- **Durable Edge AI:** An ESP32-CAM module evaluates daily canopy photos using on-device HSV color thresholds. Hardware builds avoid cheap PET lamination, utilizing stable UV-resistant enclosures that won't yellow or degrade from pesticide exposure within 18 months.
-- **Remote & Offline Adjustments:** Deployed units feature `esp-serial-flasher` integration for OTA refinement. Field dashboards utilize high contrast and cache data to handle offline field dead zones seamlessly.
+**System Lens** — Does it work reliably in the real world?
+Because the hardware lives outdoors in soil and weather, reliability is non-negotiable.
+A sensor that fails after two rain cycles is worse than no sensor — it creates false confidence.
+Every design decision around enclosures, waterproofing, and sensor selection traces back to this.
 
-## Impact & Outcomes
+**Business Lens** — Will users pay for it, and keep paying?
+An AI insight that replaces a single agronomist visit has clear economic value.
+We need to make sure the system delivers that value consistently enough that it becomes
+a recurring part of how a farm operates, not a one-time experiment.
 
-Implementing sensor-based monitoring has proven to trigger profound economic impact. To contextualize the scale of change Green Node provides, we look to industry benchmarks alongside our internal metrics:
+---
 
-- **Proven Sector Profitability (The Gardenia Baseline):** In a documented real-world case study on gardenia production, implementing a wireless sensor network cut crop production time in half (from 22 months down to 11 months) and reduced disease-related crop losses by 50%. This structural optimization created an annualized profit increase of over 1.5 times compared to standard practices, with a system payback period of under one month once crops were sold.
+## What We're Actually Selling (Kotler's Product Model)
 
-Green Node delivers parallel efficiency curves to commercial and municipal clients: 
-- **Worker Efficacy:** Pushing crews toward high-priority plants compresses a meandering 3-hour shift into a tight, 45-minute route, representing a verifiable **75% reduction in daily inspection time**.
-- **Financial Viability:** A fast hardware payback cycle (achieved in approx. 5 months on ₹500/month SaaS billing) utterly dismantles the "Yield vs. Money" disconnect. By driving capital costs down to ₹2,390/node, the financial math universally favors the facility.
-- **Resource Optimization:** Fusing soil saturation data with live forecasts curtails scheduled irrigation before storms, preventing water logging.
+Mapping the system to Kotler's three-layer model forced us to be precise about
+where our differentiation actually sits.
 
-## Lessons Learned
+**Core Benefit**
+Plant survival, optimal yield, and early disease prevention. This is the need we're selling
+against — not hardware, not software.
 
-- **Labor optimization drives adoption:** Most IoT agricultural tools fixate strictly on agronomy, ignoring economics. However, solving the facility manager's combined labor problem via optimized walk routes creates the most effective sales conversion path.
-- **Ground-truth logic defeats broad models:** Utilizing simple, local rule-based color evaluation yielded practical MVP insights faster and cheaper than attempting to implement complex, cloud-bound machine learning pipelines.
-- **Avoid false promises:** Sticking to core thermal and moisture monitoring outperformed utilizing cheap NPK sensors, which ultimately compromise trust by only providing inaccurate EC estimates. Granular microclimate logging offers considerably more actionable value in the long term.
+**Expected Product**
+At minimum, buyers expect the physical nodes to reliably capture soil moisture, temperature,
+humidity, and light data. This is table stakes — any competitor can offer this.
+
+**Augmented Product — our actual differentiator**
+The camera node feeding leaf images into a pre-trained AI disease detection model is what
+moves us out of the commodity tier. Instead of telling a farmer "humidity is 78%",
+we tell them "Node 3 has early signs of Late Blight — inspect row 4."
+That specificity is what justifies a price premium and creates switching costs.
+
+---
+
+## Architecture for Scale
+
+We designed the system in three tiers so it can grow without a full rebuild.
+
+**Tier 1 — Smart Connected Product**
+Individual sensor nodes and camera nodes gathering real-time soil and plant data.
+This is what we've built and what the MVP ships.
+
+**Tier 2 — Product System**
+A centralised platform where data from multiple nodes and the AI model aggregate
+into a single farm health dashboard. Multiple farms, multiple node clusters,
+unified view — this is the next 6-month target.
+
+**Tier 3 — System of Systems (future)**
+Integration with external data sources: weather APIs, automated irrigation controllers,
+ERP systems used by large agricultural operations. The soil moisture reading triggers
+a watering event. The disease detection flags a spray order. At this tier, the system
+becomes infrastructure rather than a product.
+
+---
+
+## MVP Scope — MoSCoW Prioritisation
+
+We used MoSCoW to define what Day 1 of a real deployment must include vs. what can wait.
+
+**Must Have**
+Soil moisture sensing accurate enough to trigger meaningful alerts.
+AI leaf analysis that correctly identifies the most common disease classes.
+A server that stores readings and surfaces alerts — even if the dashboard is basic.
+Nodes that survive rain and outdoor temperatures for at least one growing season.
+
+**Should Have**
+Ambient humidity and light sensing for richer context around moisture readings.
+NTP-synced timestamps so data aligns across multiple nodes.
+Dynamic send intervals so the system reports more frequently when conditions are critical.
+
+**Could Have**
+Predictive disease modelling using time-series soil data, not just snapshot leaf images.
+Battery voltage monitoring and low-battery alerts.
+OTA firmware updates so deployed nodes don't need physical access to update.
+
+**Won't Have (this iteration)**
+LoRa or cellular connectivity — the current system requires local WiFi.
+Automated irrigation actuation — we send alerts, we don't yet trigger hardware responses.
+Full regulatory certification (CE, FCC) required for commercial distribution.
+
+---
+
+## Hardware Reality
+
+Because we're shipping physical nodes, not just software, the manufacturing constraints
+are part of the product definition — not an afterthought.
+
+Components were chosen for immediate availability on standard supplier catalogues
+(LCSC, Mouser, DFRobot) so the BOM can be sourced without long lead times.
+The AI-Thinker ESP32-CAM and ESP32-C3 are both in mass production with stable supply.
+
+For future commercial distribution, wireless modules operating in the 2.4 GHz and
+sub-GHz bands require regional certification — CE for Europe, FCC for North America,
+WPC for India. This is planned for after the MVP validation phase, once the core product
+has been tested across at least two growing seasons in real field conditions.
