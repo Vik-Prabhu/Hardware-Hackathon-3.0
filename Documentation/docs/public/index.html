@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Green Node — Intelligent Plant Monitoring</title>
+  <meta name="description" content="AI-optimized growth monitoring for your bonsai collection. Real-time sensors, visual diagnostics, and intelligent health advisories by Team Robomanipal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════ RESET & BASE ═══════════ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gn-emerald: #10b981;
+      --gn-emerald-light: #34d399;
+      --gn-emerald-dark: #059669;
+      --gn-lime: #84cc16;
+      --gn-teal: #14b8a6;
+      --gn-sky: #06b6d4;
+      --gn-amber: #f59e0b;
+      --gn-white: #f0fdf4;
+      --gn-dark: #071a12;
+      --gn-dark-card: #0c2419;
+      --gn-dark-surface: #103023;
+      --gn-text-muted: #7dae96;
+      --gn-gradient: linear-gradient(135deg, #10b981, #06b6d4, #84cc16);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gn-dark);
+      color: var(--gn-white);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    /* ═══════════ GLASS NAVBAR ═══════════ */
+    .glass-nav {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      width: calc(100% - 32px);
+      max-width: 860px;
+      border-radius: 60px;
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.10);
+      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    .glass-nav.scrolled {
+      background: rgba(7,26,18,0.92);
+      border-color: rgba(16,185,129,0.18);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 28px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--gn-white);
+    }
+
+    .nav-logo .accent { color: var(--gn-emerald); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-link {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 30px;
+      transition: all 0.25s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: #fff;
+      background: rgba(255,255,255,0.10);
+    }
+
+    .nav-link.cta {
+      background: var(--gn-emerald);
+      color: var(--gn-dark) !important;
+      font-weight: 600;
+    }
+
+    .nav-link.cta:hover {
+      background: var(--gn-emerald-light);
+      transform: translateY(-1px);
+    }
+
+    /* Mobile hamburger */
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 5px;
+      padding: 6px;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--gn-white);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      padding: 0 20px 16px;
+      gap: 4px;
+    }
+
+    .mobile-menu.open { display: flex; }
+
+    .mobile-link {
+      display: block;
+      color: rgba(255,255,255,0.75);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .mobile-link:hover { background: rgba(16,185,129,0.12); color: var(--gn-emerald); }
+
+    /* ═══════════ HERO ═══════════ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-end;
+      padding: 0 0 72px 0;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .hero-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 35%;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(7,26,18,0.18) 0%,
+        rgba(7,26,18,0.35) 35%,
+        rgba(7,26,18,0.72) 62%,
+        rgba(7,26,18,0.97) 100%
+      );
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 56px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(16,185,129,0.10);
+      border: 1px solid rgba(16,185,129,0.22);
+      padding: 7px 20px;
+      border-radius: 40px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--gn-emerald-light);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp .7s ease .1s forwards;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--gn-emerald);
+      border-radius: 50%;
+      animation: pulseDot 2s ease infinite;
+    }
+
+    @keyframes pulseDot {
+      0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+      50%     { box-shadow: 0 0 0 7px rgba(16,185,129,0); }
+    }
+
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      line-height: 0.95;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp .7s ease .2s forwards;
+    }
+
+    .hero-title .line1 {
+      display: block;
+      font-size: clamp(3.6rem, 8vw, 7.5rem);
+      color: #fff;
+      letter-spacing: -3px;
+    }
+
+    .hero-title .line2 {
+      display: block;
+      font-size: clamp(3.6rem, 8vw, 7.5rem);
+      letter-spacing: -3px;
+      background: var(--gn-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 1.8vw, 1.35rem);
+      color: rgba(255,255,255,0.55);
+      max-width: 460px;
+      line-height: 1.65;
+      margin-bottom: 36px;
+      font-weight: 400;
+      opacity: 0;
+      animation: fadeUp .7s ease .3s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp .7s ease .4s forwards;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gn-emerald);
+      color: var(--gn-dark);
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 15px 30px;
+      border-radius: 50px;
+      transition: all .3s cubic-bezier(.16,1,.3,1);
+      box-shadow: 0 4px 24px rgba(16,185,129,0.28);
+    }
+
+    .btn-primary:hover {
+      background: var(--gn-emerald-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(16,185,129,0.4);
+    }
+
+    .btn-primary svg { width: 18px; height: 18px; }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.06);
+      color: var(--gn-white);
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 15px 30px;
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: all .3s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.28);
+    }
+
+    .btn-primary.lg, .btn-secondary.lg { padding: 18px 38px; font-size: 1.05rem; }
+
+    /* Floating stat chips */
+    .hero-stats {
+      display: flex;
+      gap: 14px;
+      margin-top: 44px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp .7s ease .55s forwards;
+    }
+
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.07);
+      padding: 12px 18px;
+      border-radius: 14px;
+      transition: all .3s ease;
+    }
+
+    .stat-chip:hover {
+      background: rgba(16,185,129,0.07);
+      border-color: rgba(16,185,129,0.18);
+      transform: translateY(-2px);
+    }
+
+    .stat-chip .icon { font-size: 1.5rem; }
+    .stat-chip .info { display: flex; flex-direction: column; }
+    .stat-chip .val { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem; }
+    .stat-chip .lbl { font-size: 0.72rem; color: var(--gn-text-muted); font-weight: 500; }
+
+    /* Scroll arrow */
+    .scroll-hint {
+      position: absolute;
+      bottom: 28px;
+      right: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      z-index: 2;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .scroll-hint .line {
+      width: 1px;
+      height: 44px;
+      background: linear-gradient(180deg, transparent, var(--gn-emerald));
+      animation: scrollPulse 2s ease infinite;
+    }
+
+    @keyframes scrollPulse { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════ SHARED SECTION STYLES ═══════════ */
+    .section-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 36px;
+    }
+
+    .section-head {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .section-tag {
+      display: inline-block;
+      background: rgba(16,185,129,0.09);
+      border: 1px solid rgba(16,185,129,0.18);
+      color: var(--gn-emerald);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 16px;
+      border-radius: 30px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.9rem, 3.8vw, 3rem);
+      font-weight: 800;
+      color: var(--gn-white);
+      letter-spacing: -1px;
+      margin-bottom: 14px;
+    }
+
+    .grad-text {
+      background: var(--gn-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--gn-text-muted);
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ═══════════ FEATURES ═══════════ */
+    .features {
+      padding: 110px 0;
+      position: relative;
+    }
+
+    .features::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 560px;
+      height: 560px;
+      background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .f-card {
+      position: relative;
+      background: var(--gn-dark-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 18px;
+      padding: 32px 26px;
+      transition: all .35s cubic-bezier(.16,1,.3,1);
+      overflow: hidden;
+    }
+
+    .f-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2.5px;
+      background: var(--gn-gradient);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+
+    .f-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(16,185,129,0.18);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
+    }
+
+    .f-card:hover::after { opacity: 1; }
+
+    .f-num {
+      position: absolute;
+      top: 16px; right: 20px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: rgba(255,255,255,0.025);
+      line-height: 1;
+    }
+
+    .f-icon { font-size: 2.2rem; margin-bottom: 16px; }
+
+    .f-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .f-desc {
+      font-size: 0.9rem;
+      color: var(--gn-text-muted);
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .f-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--gn-emerald);
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: gap .3s ease;
+    }
+
+    .f-link:hover { gap: 11px; }
+
+    .f-link svg { width: 14px; height: 14px; }
+
+    /* ═══════════ PIPELINE ═══════════ */
+    .pipeline-section {
+      padding: 110px 0;
+      background: var(--gn-dark-card);
+    }
+
+    .pipeline {
+      max-width: 660px;
+      margin: 0 auto;
+    }
+
+    .p-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      position: relative;
+      padding-bottom: 42px;
+    }
+
+    .p-step:last-child { padding-bottom: 0; }
+
+    .p-step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 27px;
+      top: 56px;
+      width: 2px;
+      height: calc(100% - 56px);
+      background: linear-gradient(180deg, var(--gn-emerald), rgba(16,185,129,0.08));
+    }
+
+    .p-circle {
+      width: 54px;
+      height: 54px;
+      min-width: 54px;
+      border-radius: 50%;
+      background: rgba(16,185,129,0.08);
+      border: 2px solid rgba(16,185,129,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      transition: all .3s ease;
+    }
+
+    .p-step:hover .p-circle {
+      background: rgba(16,185,129,0.18);
+      border-color: var(--gn-emerald);
+      transform: scale(1.08);
+    }
+
+    .p-body h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 3px;
+      margin-bottom: 5px;
+    }
+
+    .p-body p { font-size: 0.92rem; color: var(--gn-text-muted); line-height: 1.6; }
+
+    /* ═══════════ TECH STACK ═══════════ */
+    .tech-section {
+      padding: 100px 0;
+    }
+
+    .tech-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .tech-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gn-dark-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 13px 22px;
+      border-radius: 50px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--gn-white);
+      transition: all .3s ease;
+    }
+
+    .tech-pill:hover {
+      border-color: rgba(16,185,129,0.28);
+      background: rgba(16,185,129,0.07);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+    }
+
+    .tech-pill .t-icon { font-size: 1.15rem; }
+
+    /* ═══════════ CTA ═══════════ */
+    .cta-section {
+      padding: 110px 0;
+    }
+
+    .cta-box {
+      position: relative;
+      max-width: 780px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 72px 36px;
+      background: var(--gn-dark-card);
+      border: 1px solid rgba(16,185,129,0.12);
+      border-radius: 28px;
+      overflow: hidden;
+    }
+
+    .cta-glow {
+      position: absolute;
+      top: -70px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 380px;
+      height: 180px;
+      background: radial-gradient(ellipse, rgba(16,185,129,0.13), transparent);
+      pointer-events: none;
+    }
+
+    .cta-box h2 {
+      position: relative;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .cta-box p {
+      position: relative;
+      font-size: 1.05rem;
+      color: var(--gn-text-muted);
+      margin-bottom: 36px;
+    }
+
+    .cta-btns {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* ═══════════ FOOTER ═══════════ */
+    .site-footer {
+      padding: 36px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .footer-brand .accent { color: var(--gn-emerald); }
+    .footer-copy { font-size: 0.82rem; color: var(--gn-text-muted); }
+
+    /* ═══════════ RESPONSIVE ═══════════ */
+    @media (max-width: 960px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .hero-content { padding: 0 22px; }
+      .hero { padding-bottom: 56px; }
+      .hero-stats { flex-direction: column; gap: 10px; }
+      .stat-chip { max-width: 200px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .section-wrap { padding: 0 18px; }
+      .scroll-hint { display: none; }
+      .footer-inner { flex-direction: column; gap: 12px; text-align: center; }
+      .cta-box { padding: 48px 22px; margin: 0 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════ NAVIGATION ═══════════ -->
+  <nav class="glass-nav" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <span>🌿</span>
+        <span>Green<span class="accent">Node</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="/" class="nav-link active">Home</a>
+        <a href="/research/market-research" class="nav-link">Docs</a>
+        <a href="/hardware/mechanical" class="nav-link">Hardware</a>
+        <a href="/software/setup" class="nav-link">Software</a>
+        <a href="/dashboard/" class="nav-link cta">Dashboard →</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="/" class="mobile-link">Home</a>
+      <a href="/research/market-research" class="mobile-link">Docs</a>
+      <a href="/hardware/mechanical" class="mobile-link">Hardware</a>
+      <a href="/software/setup" class="mobile-link">Software</a>
+      <a href="/dashboard/" class="mobile-link">Dashboard →</a>
+    </div>
+  </nav>
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero">
+    <div class="hero-bg">
+      <img src="/hero-bonsai.jpg" alt="Green Node sensors monitoring bonsai plants" />
+      <div class="hero-overlay"></div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Team Robomanipal — Hardware Hackathon 3.0
+      </div>
+
+      <h1 class="hero-title">
+        <span class="line1">GREEN</span>
+        <span class="line2">NODE</span>
+      </h1>
+
+      <p class="hero-sub">
+        AI-Optimized Growth Monitoring for Your Bonsai Collection
+      </p>
+
+      <div class="hero-actions">
+        <a href="/dashboard/" class="btn-primary">
+          <span>Open Dashboard</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+        <a href="/research/market-research" class="btn-secondary">
+          <span>Explore Docs</span>
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-chip">
+          <span class="icon">🌡️</span>
+          <div class="info"><span class="val">±0.5°C</span><span class="lbl">Accuracy</span></div>
+        </div>
+        <div class="stat-chip">
+          <span class="icon">📡</span>
+          <div class="info"><span class="val">WiFi</span><span class="lbl">Connected</span></div>
+        </div>
+        <div class="stat-chip">
+          <span class="icon">🤖</span>
+          <div class="info"><span class="val">AI</span><span class="lbl">Advisory</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-hint">
+      <div class="line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- ═══════════ FEATURES ═══════════ -->
+  <section class="features" id="features">
+    <div class="section-wrap">
+      <div class="section-head">
+        <span class="section-tag">What We Built</span>
+        <h2 class="section-title">A Complete <span class="grad-text">Ecosystem</span></h2>
+        <p class="section-desc">Every component engineered for precision — from soil sensors to AI-powered health analysis.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="f-card">
+          <div class="f-num">01</div>
+          <div class="f-icon">🔧</div>
+          <h3 class="f-title">Modular Hardware</h3>
+          <p class="f-desc">Cleanly engineered enclosures &amp; PCBs for ESP32-C3 sensor nodes — snap-fit, weather-resistant, and field-ready.</p>
+          <a href="/hardware/mechanical" class="f-link">Learn More <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+        <div class="f-card">
+          <div class="f-num">02</div>
+          <div class="f-icon">📡</div>
+          <h3 class="f-title">Real-Time Telemetry</h3>
+          <p class="f-desc">WiFi-enabled nodes stream temperature, moisture, humidity &amp; light data every 30 seconds via mDNS discovery.</p>
+          <a href="/software/protocols" class="f-link">Learn More <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+        <div class="f-card">
+          <div class="f-num">03</div>
+          <div class="f-icon">📸</div>
+          <h3 class="f-title">Visual Diagnostics</h3>
+          <p class="f-desc">ESP32-CAM nodes capture leaf images on demand, enabling AI-powered disease detection and growth tracking.</p>
+          <a href="/hardware/electronics" class="f-link">Learn More <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+        <div class="f-card">
+          <div class="f-num">04</div>
+          <div class="f-icon">🤖</div>
+          <h3 class="f-title">AI Health Advisory</h3>
+          <p class="f-desc">Gemini-powered analysis generates actionable care plans with multilingual support and voice playback.</p>
+          <a href="/software/code" class="f-link">Learn More <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+        <div class="f-card">
+          <div class="f-num">05</div>
+          <div class="f-icon">📊</div>
+          <h3 class="f-title">Live Dashboard</h3>
+          <p class="f-desc">A real-time web dashboard with animated charts, sensor timelines, and AI-generated daily action plans.</p>
+          <a href="/dashboard/" class="f-link">Learn More <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+        <div class="f-card">
+          <div class="f-num">06</div>
+          <div class="f-icon">📈</div>
+          <h3 class="f-title">Market Validated</h3>
+          <p class="f-desc">Backed by thorough market research, competitor analysis, and a successful real-world bonsai nursery trial.</p>
+          <a href="/research/market-research" class="f-link">Learn More <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ PIPELINE ═══════════ -->
+  <section class="pipeline-section" id="pipeline">
+    <div class="section-wrap">
+      <div class="section-head">
+        <span class="section-tag">The Pipeline</span>
+        <h2 class="section-title">How <span class="grad-text">Green Node</span> Works</h2>
+      </div>
+
+      <div class="pipeline">
+        <div class="p-step">
+          <div class="p-circle">🌱</div>
+          <div class="p-body">
+            <h4>Sense</h4>
+            <p>ESP32-C3 nodes measure temperature, soil moisture, humidity, and light intensity in real time.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-circle">📶</div>
+          <div class="p-body">
+            <h4>Transmit</h4>
+            <p>Data is pushed over WiFi to the FastAPI backend via HTTP POST with mDNS discovery.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-circle">🗄️</div>
+          <div class="p-body">
+            <h4>Store</h4>
+            <p>The server logs readings in-memory with full historical timelines per node.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-circle">🧠</div>
+          <div class="p-body">
+            <h4>Analyze</h4>
+            <p>Gemini AI processes sensor data + leaf images to produce structured health advisories.</p>
+          </div>
+        </div>
+        <div class="p-step">
+          <div class="p-circle">📱</div>
+          <div class="p-body">
+            <h4>Act</h4>
+            <p>The dashboard surfaces AI care plans, alerts, and multilingual voice guidance.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ TECH STACK ═══════════ -->
+  <section class="tech-section" id="tech">
+    <div class="section-wrap">
+      <div class="section-head">
+        <span class="section-tag">Built With</span>
+        <h2 class="section-title">Our <span class="grad-text">Tech Stack</span></h2>
+      </div>
+
+      <div class="tech-grid">
+        <div class="tech-pill"><span class="t-icon">⚡</span> ESP32-C3</div>
+        <div class="tech-pill"><span class="t-icon">📷</span> ESP32-CAM</div>
+        <div class="tech-pill"><span class="t-icon">🐍</span> FastAPI</div>
+        <div class="tech-pill"><span class="t-icon">🤖</span> Gemini AI</div>
+        <div class="tech-pill"><span class="t-icon">🌐</span> VitePress</div>
+        <div class="tech-pill"><span class="t-icon">📊</span> Chart.js</div>
+        <div class="tech-pill"><span class="t-icon">🗣️</span> Sarvam AI</div>
+        <div class="tech-pill"><span class="t-icon">🔌</span> mDNS</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ CTA ═══════════ -->
+  <section class="cta-section">
+    <div class="section-wrap">
+      <div class="cta-box">
+        <div class="cta-glow"></div>
+        <h2>Ready to Monitor Smarter?</h2>
+        <p>Dive into the live dashboard or explore our full documentation.</p>
+        <div class="cta-btns">
+          <a href="/dashboard/" class="btn-primary lg">
+            <span>Open Live Dashboard</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+          <a href="/software/setup" class="btn-secondary lg">Setup Guide</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ FOOTER ═══════════ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span>🌿</span>
+        <span>Green<span class="accent">Node</span></span>
+      </div>
+      <p class="footer-copy">Team Robomanipal · Hardware Hackathon 3.0 · 2026</p>
+    </div>
+  </footer>
+
+  <!-- ═══════════ JAVASCRIPT ═══════════ -->
+  <script>
+    // Glass nav scroll effect
+    const nav = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Mobile menu
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      mobileMenu.classList.toggle('open');
+    });
+
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('.mobile-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        mobileMenu.classList.remove('open');
+      });
+    });
+  </script>
+</body>
+</html>
