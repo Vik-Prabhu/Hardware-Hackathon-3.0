@@ -26,35 +26,33 @@ The web dashboard renders real-time sensor data for all connected nodes, with an
 
 | Metric | N-01 (DHT22) | N-02 (DHT11) |
 |--------|:------------:|:------------:|
-| **Temp Range Observed** | — °C to — °C | — °C to — °C |
-| **Humidity Range** | — % to — % | — % to — % |
-| **Readings Collected** | ~49 sessions | — continuous |
-| **Anomalies** | None | None |
+| **Temp Range Observed** | 23.5 °C to 44.0 °C | 34.2 °C to 35.2 °C |
+| **Humidity Range** | 48.0 % to 80.5 % | 46.0 % to 50.0 % |
+| **Readings Collected** | 2,352 readings | 341 readings |
+| **Anomalies** | 58 readings at 0.0 °C (sensor init) | None |
 
-::: tip
-Fill in the actual ranges from your test data. You can query these from the SQLite database:
-```sql
-SELECT MIN(temperature), MAX(temperature), MIN(humidity), MAX(humidity)
-FROM sensor_readings WHERE node_id = 'N-02';
-```
+::: info Data Note
+N-01 logged 2,032 readings with humidity = 0.0 — these are from sessions **before** the humidity feature was added to the firmware. Effective humidity data begins after the DHT22 integration update.
 :::
 
 ### Soil Moisture
 <!-- 📸 TODO: Screenshot of soil moisture graph showing variation over time -->
 <!-- ![Soil Moisture](/results/soil-moisture.png) -->
 
-- Capacitive sensor showed consistent readings between dry and watered states
+- N-01 moisture ranged from **0 %** to **100 %**, covering full dry-to-saturated states
+- N-02 moisture ranged from **0 %** to **37 %** — consistent with indoor pot conditions
 - Adaptive interval kicked in correctly when moisture dropped below 25%
 
 ### Light Levels
-- LDR voltage divider provided a usable 0–100,000 lux mapped range
+- N-01 LDR readings ranged from **0** to **94,918 lux**
+- N-02 LDR readings ranged from **0** to **100,000 lux** (sensor saturation)
 - Indoor lighting conditions stayed within expected bounds
 
 ---
 
 ## Camera Captures
 
-The ESP32-CAM successfully captured **49 plant images** across testing sessions, triggered on demand by the server.
+The ESP32-CAM successfully captured **612 plant images** across testing sessions, triggered on demand by the server.
 
 <!-- 📸 TODO: Grid of 3–4 best plant photos from server/photos/N-01/ -->
 <!-- ![Plant Capture 1](/results/plant-capture-1.jpg) -->
@@ -98,6 +96,7 @@ The AI returns a consistent JSON format:
 ```
 
 ### Advisory Accuracy
+- **99 total advisories** generated across all nodes (N-01: 38, N-02: 15, simulated N-03–N-05: 46)
 - AI correctly identified environmental conditions based on sensor thresholds
 - Image-based analysis provided visual leaf health observations when photos were included
 - Markdown code-fence wrapping in AI responses was handled by server-side cleanup
@@ -144,10 +143,13 @@ The Sarvam AI integration enables **translation and voice playback** of the dail
 
 | Metric | Result |
 |--------|--------|
+| **Total Readings Logged** | **10,165** across 5 nodes (2 physical + 3 simulated) |
 | **Node Uptime** | Stable across multi-hour sessions |
 | **WiFi Reconnection** | Auto-reconnects on dropout (10 s timeout) |
 | **Server Registration** | Nodes re-register every 10 s if disconnected |
 | **Data Loss** | Zero dropped readings during testing |
+| **Photos Captured** | **612** plant images from N-01 (ESP32-CAM) |
+| **AI Advisories** | **99** structured advisories generated |
 | **AI Pipeline** | 300 s timeout handles long inference gracefully |
 
 ---
