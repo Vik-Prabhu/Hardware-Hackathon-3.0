@@ -26,6 +26,7 @@ from database import get_connection, init_db
 
 load_dotenv()
 AI_SERVER_URL = os.getenv("AI_SERVER_URL", "http://192.168.236.84:8000")
+SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "")
 
 PHOTOS_DIR = Path(__file__).parent / "photos"
 
@@ -605,6 +606,310 @@ def get_node_advisory(node_id: str):
         return data
     except json.JSONDecodeError:
         return {"raw": row["advisory"], "_timestamp": row["timestamp"]}
+
+
+# ── Daily Plan & Sarvam AI Endpoints ─────────────────────────────────
+
+@app.get("/api/daily-plan")
+def get_daily_plan():
+    """Aggregate the latest advisory from each node into one consolidated daily plan."""
+    conn = get_connection()
+    # Fetch latest advisory for every node
+    rows = conn.execute(
+        """
+        SELECT a.node_id, a.advisory, a.timestamp
+        FROM advisories a
+        INNER JOIN (
+            SELECT node_id, MAX(timestamp) AS max_ts
+            FROM advisories
+            GROUP BY node_id
+        ) latest ON a.node_id = latest.node_id AND a.timestamp = latest.max_ts
+        ORDER BY a.node_id
+        """
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="No advisories found. Run AI analysis first.")
+
+    node_summaries = []
+    all_problems = []
+    all_solutions = []
+    all_predictions_short = []
+    all_predictions_long = []
+    severity_counts = {"critical": 0, "warning": 0, "info": 0, "healthy": 0}
+
+    for row in rows:
+        node_id = row["node_id"]
+        try:
+            adv_data = json.loads(row["advisory"])
+        except json.JSONDecodeError:
+            continue
+
+        # Unwrap nested advisory
+        inner = adv_data
+        for _ in range(5):
+            if isinstance(inner, dict) and "advisory" in inner and isinstance(inner["advisory"], dict):
+                inner = inner["advisory"]
+            else:
+                break
+
+        # Extract clean advisory from markdown code blocks in description
+        if isinstance(inner, dict) and isinstance(inner.get("description", ""), str) and "```json" in inner.get("description", ""):
+            try:
+                match = re.search(r'```json\s*([\s\S]*?)\s*```', inner["description"])
+                if match:
+                    parsed = json.loads(match.group(1))
+                    if isinstance(parsed, dict) and ("summary" in parsed or "problems" in parsed):
+                        inner = parsed
+            except Exception:
+                pass
+
+        summary = inner.get("summary", "No analysis available")
+        severity = inner.get("overall_severity", "info")
+        severity_counts[severity] = severity_counts.get(severity, 0) + 1
+
+        node_summaries.append({
+            "node_id": node_id,
+            "summary": summary,
+            "severity": severity,
+            "timestamp": row["timestamp"]
+        })
+
+        # Collect problems
+        for p in inner.get("problems", []):
+            all_problems.append({
+                "node_id": node_id,
+                "issue": p.get("issue", "Unknown"),
+                "details": p.get("details", ""),
+                "severity": p.get("severity", "info")
+            })
+
+        # Collect solutions
+        for s in inner.get("solutions", []):
+            all_solutions.append({
+                "node_id": node_id,
+                "action": s.get("action", "Unknown"),
+                "details": s.get("details", ""),
+                "urgency": s.get("urgency", "monitor")
+            })
+
+        # Collect predictions
+        preds = inner.get("predictions", {})
+        if preds.get("short_term") and preds["short_term"] != "N/A":
+            all_predictions_short.append(f"{node_id}: {preds['short_term']}")
+        if preds.get("long_term") and preds["long_term"] != "N/A":
+            all_predictions_long.append(f"{node_id}: {preds['long_term']}")
+
+    # Sort solutions by urgency priority
+    urgency_order = {"immediate": 0, "within_24h": 1, "monitor": 2}
+    all_solutions.sort(key=lambda s: urgency_order.get(s["urgency"], 3))
+
+    # Build a single cohesive paragraph report instead of a list
+    paragraph = f"Here is your Daily Plantation Report for {datetime.utcnow().strftime('%B %d, %Y')}. "
+    
+    if severity_counts.get("critical", 0) > 0:
+        paragraph += f"The overall condition is CRITICAL with {severity_counts['critical']} node(s) requiring immediate attention. "
+    elif severity_counts.get("warning", 0) > 0:
+        paragraph += f"The overall condition needs monitoring as {severity_counts['warning']} node(s) show warning signs. "
+    else:
+        paragraph += "The plantation is overall HEALTHY with no pressing issues. "
+
+    urgent_issues = [f"{p['issue'].lower()} around node {p['node_id']}" for p in all_problems if p['severity'] in ['critical', 'warning']]
+    if urgent_issues:
+        paragraph += f"The main issues identified are {', '.join(urgent_issues)}. "
+
+    urgent_actions = [f"{s['action'].lower()} at node {s['node_id']}" for s in all_solutions if s['urgency'] in ['immediate', 'within_24h']]
+    if urgent_actions:
+        paragraph += f"It is highly recommended to perform the following actions today: {', '.join(urgent_actions)}. "
+    elif all_solutions:
+        paragraph += "There are some minor maintenance tasks suggested, but no urgent actions are required today. "
+
+    if all_predictions_short:
+        paragraph += "If ignored, these issues may lead to reduced plant health or crop failure in the near term. "
+
+    paragraph += "Please review the individual node dashboards for detailed sensor readings and localized advice."
+
+    plan_text = paragraph
+
+    return {
+        "plan_text": plan_text,
+        "nodes": node_summaries,
+        "problems": all_problems,
+        "solutions": all_solutions,
+        "severity_counts": severity_counts,
+        "generated_at": datetime.utcnow().isoformat()
+    }
+
+
+class TranslateRequest(BaseModel):
+    text: str
+    target_language_code: str
+    source_language_code: str = "en-IN"
+
+
+@app.post("/api/translate")
+async def translate_text(payload: TranslateRequest):
+    """Proxy translation through Sarvam AI's /translate endpoint, with chunking for large text."""
+    if not SARVAM_API_KEY or SARVAM_API_KEY == "your_sarvam_api_key_here":
+        raise HTTPException(status_code=500, detail="SARVAM_API_KEY not configured in .env")
+
+    def chunk_text_func(text: str, max_len: int = 1900):
+        chunks = []
+        current_chunk = []
+        current_len = 0
+        for line in text.split('\n'):
+            line_len = len(line) + 1
+            if current_len + line_len > max_len and current_chunk:
+                chunks.append('\n'.join(current_chunk))
+                current_chunk = [line]
+                current_len = line_len
+            else:
+                current_chunk.append(line)
+                current_len += line_len
+        if current_chunk:
+            chunks.append('\n'.join(current_chunk))
+        return chunks
+
+    chunks = chunk_text_func(payload.text)
+    translated_chunks = []
+
+    try:
+        timeout = aiohttp.ClientTimeout(total=90)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            for chunk in chunks:
+                if not chunk.strip():
+                    translated_chunks.append("")
+                    continue
+                
+                async with session.post(
+                    "https://api.sarvam.ai/translate",
+                    headers={
+                        "Content-Type": "application/json",
+                        "api-subscription-key": SARVAM_API_KEY
+                    },
+                    json={
+                        "input": chunk,
+                        "source_language_code": payload.source_language_code,
+                        "target_language_code": payload.target_language_code,
+                        "model": "sarvam-translate:v1",
+                        "mode": "formal"
+                    }
+                ) as resp:
+                    if resp.status != 200:
+                        err_text = await resp.text()
+                        print(f"[Sarvam Translate Error] {resp.status}: {err_text}")
+                        raise HTTPException(status_code=resp.status, detail=f"Sarvam API error: {err_text}")
+                    data = await resp.json()
+                    translated_chunks.append(data.get("translated_text", ""))
+                    
+            return {
+                "translated_text": "\n".join(translated_chunks),
+                "source_language_code": payload.source_language_code
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[Sarvam Translate Error] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class TranslateBatchRequest(BaseModel):
+    texts: list[str]
+    target_language_code: str
+    source_language_code: str = "en-IN"
+
+
+@app.post("/api/translate-batch")
+async def translate_batch(payload: TranslateBatchRequest):
+    """Proxy batch translation for structured data fields concurrently."""
+    if not SARVAM_API_KEY or SARVAM_API_KEY == "your_sarvam_api_key_here":
+        raise HTTPException(status_code=500, detail="SARVAM_API_KEY not configured in .env")
+
+    sem = asyncio.Semaphore(5)
+
+    async def fetch_translation(session, text):
+        if not text or not text.strip():
+            return text
+        async with sem:
+            try:
+                async with session.post(
+                    "https://api.sarvam.ai/translate",
+                    headers={
+                        "Content-Type": "application/json",
+                        "api-subscription-key": SARVAM_API_KEY
+                    },
+                    json={
+                        "input": text[:2000],
+                        "source_language_code": payload.source_language_code,
+                        "target_language_code": payload.target_language_code,
+                        "model": "sarvam-translate:v1",
+                        "mode": "formal"
+                    }
+                ) as resp:
+                    if resp.status == 200:
+                        d = await resp.json()
+                        return d.get("translated_text", text)
+                    else:
+                        err = await resp.text()
+                        print(f"[Sarvam Translate Batch Error] {resp.status}: {err}")
+                        return text
+            except Exception as e:
+                print(f"[Fetch Exception]: {str(e)}")
+                return text
+
+    try:
+        timeout = aiohttp.ClientTimeout(total=45)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            tasks = [fetch_translation(session, text) for text in payload.texts]
+            translated = await asyncio.gather(*tasks)
+            return {"translated_texts": translated}
+    except Exception as e:
+        print(f"[Sarvam Translate Error] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class TTSRequest(BaseModel):
+    text: str
+    target_language_code: str
+
+
+@app.post("/api/tts")
+async def text_to_speech(payload: TTSRequest):
+    """Proxy TTS through Sarvam AI's /text-to-speech endpoint."""
+    if not SARVAM_API_KEY or SARVAM_API_KEY == "your_sarvam_api_key_here":
+        raise HTTPException(status_code=500, detail="SARVAM_API_KEY not configured in .env")
+
+    try:
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(
+                "https://api.sarvam.ai/text-to-speech",
+                headers={
+                    "Content-Type": "application/json",
+                    "api-subscription-key": SARVAM_API_KEY
+                },
+                json={
+                    "inputs": [payload.text[:500]],
+                    "target_language_code": payload.target_language_code,
+                    "speaker": "shubh",
+                    "model": "bulbul:v3"
+                }
+            ) as resp:
+                if resp.status != 200:
+                    err_text = await resp.text()
+                    print(f"[Sarvam TTS Error] {resp.status}: {err_text}")
+                    raise HTTPException(status_code=resp.status, detail=f"Sarvam TTS error: {err_text}")
+                data = await resp.json()
+                audios = data.get("audios", [])
+                if not audios:
+                    raise HTTPException(status_code=500, detail="No audio returned from Sarvam")
+                return {"audio_base64": audios[0]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[Sarvam TTS Error] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ── Run directly ─────────────────────────────────────────────────────

@@ -1485,6 +1485,221 @@
       background: rgba(255, 255, 255, 0.12);
       border-color: rgba(255, 255, 255, 0.3);
     }
+
+    /* ===== DAILY PLAN SECTION ===== */
+    .daily-plan-panel {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(167, 139, 250, 0.18);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(14, 20, 48, 0.85), rgba(22, 12, 42, 0.80));
+      backdrop-filter: var(--glass);
+      box-shadow: var(--shadow-card), 0 0 60px rgba(167, 139, 250, 0.06);
+      padding: 28px 28px 24px;
+      margin-bottom: 16px;
+      animation: fadeUp 0.6s var(--transition-smooth) both;
+      animation-delay: 0.35s;
+    }
+
+    .daily-plan-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan), var(--accent-purple));
+      background-size: 200% 100%;
+      animation: gradientSlide 4s ease-in-out infinite;
+    }
+
+    @keyframes gradientSlide {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .lang-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+      padding: 6px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .lang-tab {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.74rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .lang-tab:hover {
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .lang-tab.active {
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(34, 211, 238, 0.10));
+      color: #fff;
+      border-color: rgba(167, 139, 250, 0.3);
+      box-shadow: 0 2px 12px rgba(167, 139, 250, 0.15);
+    }
+
+    .lang-tab .lang-native {
+      font-size: 0.72rem;
+      opacity: 0.7;
+    }
+
+    .plan-content-area {
+      position: relative;
+      min-height: 160px;
+    }
+
+    .plan-card {
+      padding: 20px 22px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 0.88rem;
+      line-height: 1.72;
+      color: rgba(255, 255, 255, 0.88);
+      white-space: pre-wrap;
+      word-break: break-word;
+      letter-spacing: 0.01em;
+      transition: all 0.3s ease;
+    }
+
+    .plan-card.translating {
+      opacity: 0.5;
+    }
+
+    .plan-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .plan-lang-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(167, 139, 250, 0.12);
+      color: var(--accent-purple);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+    }
+
+    .plan-speak-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      background: rgba(34, 211, 238, 0.06);
+      color: var(--accent-cyan);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .plan-speak-btn:hover {
+      background: rgba(34, 211, 238, 0.12);
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.15);
+    }
+
+    .plan-speak-btn.playing {
+      border-color: var(--accent-cyan);
+      background: rgba(34, 211, 238, 0.15);
+      animation: speakerPulse 1s ease-in-out infinite;
+    }
+
+    .plan-speak-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .plan-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 48px 24px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.88rem;
+    }
+
+    .plan-loading .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(167, 139, 250, 0.2);
+      border-top-color: var(--accent-purple);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .plan-severity-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .plan-severity-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .plan-severity-chip.critical { background: rgba(239, 68, 68, 0.12); color: var(--accent-red); }
+    .plan-severity-chip.warning { background: rgba(251, 191, 36, 0.12); color: var(--accent-amber); }
+    .plan-severity-chip.healthy { background: rgba(52, 211, 153, 0.12); color: var(--accent-green); }
+    .plan-severity-chip.info { background: rgba(34, 211, 238, 0.12); color: var(--accent-cyan); }
+
+    .sarvam-powered {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(167, 139, 250, 0.2);
+      background: rgba(167, 139, 250, 0.06);
+      font-size: 0.68rem;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
   </style>
 </head>
 
@@ -1557,7 +1772,45 @@
       </div>
     </section>
 
+    <!-- ===== DAILY ACTION PLAN ===== -->
+    <section class="daily-plan-panel" id="dailyPlanSection">
+      <div class="section-header">
+        <div>
+          <div class="section-title">
+            <span class="icon" style="background: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(34, 211, 238, 0.12));">📋</span>
+            Daily Action Plan
+          </div>
+          <p class="section-subtitle">AI-consolidated plan from all node analyses · Multilingual via Sarvam AI</p>
+        </div>
+        <div class="controls-row">
+          <button id="btnGeneratePlan" class="btn primary" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border-color: rgba(167, 139, 250, 0.3); box-shadow: 0 4px 20px rgba(167, 139, 250, 0.3);">📋 Generate Daily Plan</button>
+        </div>
+      </div>
 
+      <div class="lang-tabs" id="langTabs">
+        <button class="lang-tab active" data-lang="en-IN">🇬🇧 English</button>
+        <button class="lang-tab" data-lang="hi-IN">🇮🇳 Hindi <span class="lang-native">हिन्दी</span></button>
+        <button class="lang-tab" data-lang="ta-IN">Tamil <span class="lang-native">தமிழ்</span></button>
+        <button class="lang-tab" data-lang="te-IN">Telugu <span class="lang-native">తెలుగు</span></button>
+        <button class="lang-tab" data-lang="kn-IN">Kannada <span class="lang-native">ಕನ್ನಡ</span></button>
+        <button class="lang-tab" data-lang="ml-IN">Malayalam <span class="lang-native">മലയാളം</span></button>
+        <button class="lang-tab" data-lang="mr-IN">Marathi <span class="lang-native">मराठी</span></button>
+        <button class="lang-tab" data-lang="bn-IN">Bengali <span class="lang-native">বাংলা</span></button>
+        <button class="lang-tab" data-lang="gu-IN">Gujarati <span class="lang-native">ગુજરાતી</span></button>
+        <button class="lang-tab" data-lang="pa-IN">Punjabi <span class="lang-native">ਪੰਜਾਬੀ</span></button>
+        <button class="lang-tab" data-lang="od-IN">Odia <span class="lang-native">ଓଡ଼ିଆ</span></button>
+      </div>
+
+      <div id="planSeverityBar" class="plan-severity-bar" style="display: none;"></div>
+
+      <div class="plan-content-area" id="planContentArea">
+        <div style="color: rgba(255, 255, 255, 0.45); font-size: 0.9rem; text-align: center; padding: 48px 24px;">
+          Click <strong>Generate Daily Plan</strong> to aggregate all AI node analyses into a single actionable plan.
+        </div>
+      </div>
+
+      <div class="sarvam-powered">🔮 Translation & Voice powered by <strong style="color: var(--accent-purple); margin-left: 3px;">Sarvam AI</strong></div>
+    </section>
 
     <!-- ===== NODE DETAIL DRAWER ===== -->
     <div class="drawer-backdrop" id="drawerBackdrop"></div>
@@ -1627,6 +1880,26 @@
   <script>
     /* ===== DATA ===== */
     let nodes = [];
+
+    /* ===== LANGUAGE MAPS ===== */
+    const langCodes = {
+      'English': 'en-IN', 'Hindi': 'hi-IN', 'Tamil': 'ta-IN',
+      'Telugu': 'te-IN', 'Kannada': 'kn-IN', 'Malayalam': 'ml-IN',
+      'Marathi': 'mr-IN', 'Bengali': 'bn-IN', 'Gujarati': 'gu-IN',
+      'Punjabi': 'pa-IN', 'Odia': 'od-IN'
+    };
+    const browserVoiceLang = {
+      'English': 'en-IN', 'Hindi': 'hi-IN', 'Tamil': 'ta-IN',
+      'Telugu': 'te-IN', 'Kannada': 'kn-IN', 'Malayalam': 'ml-IN',
+      'Marathi': 'mr-IN', 'Bengali': 'bn-IN', 'Gujarati': 'gu-IN',
+      'Punjabi': 'pa-IN', 'Odia': 'or-IN'
+    };
+    const langNames = {
+      'en-IN': 'English', 'hi-IN': 'हिन्दी', 'ta-IN': 'தமிழ்',
+      'te-IN': 'తెలుగు', 'kn-IN': 'ಕನ್ನಡ', 'ml-IN': 'മലയാളം',
+      'mr-IN': 'मराठी', 'bn-IN': 'বাংলা', 'gu-IN': 'ગુજરાતી',
+      'pa-IN': 'ਪੰਜਾਬੀ', 'od-IN': 'ଓଡ଼ିଆ'
+    };
 
     /* Static metadata — physical config that doesn't come from the API */
     const NODE_META = {
@@ -2574,6 +2847,200 @@
     apiModal.addEventListener('click', (e) => {
       if (e.target === apiModal) apiModal.classList.remove('active');
     });
+
+    /* ===== DAILY PLAN + SARVAM AI ===== */
+    let dailyPlanData = null;
+    const translationCache = {};
+    let currentPlanLang = 'en-IN';
+
+    document.getElementById('btnGeneratePlan').addEventListener('click', async () => {
+      const btn = document.getElementById('btnGeneratePlan');
+      const area = document.getElementById('planContentArea');
+      const sevBar = document.getElementById('planSeverityBar');
+
+      btn.textContent = '⏳ Generating...';
+      btn.classList.add('loading');
+      area.innerHTML = '<div class="plan-loading"><div class="spinner"></div>Aggregating AI advisories from all nodes...</div>';
+      sevBar.style.display = 'none';
+
+      try {
+        const resp = await fetch(`${API_BASE}/api/daily-plan`);
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+        dailyPlanData = await resp.json();
+        
+        translationCache['en-IN'] = dailyPlanData;
+        currentPlanLang = 'en-IN';
+
+        // Reset tabs
+        document.querySelectorAll('#langTabs .lang-tab').forEach(t => {
+          t.classList.remove('active');
+          if (t.dataset.lang === 'en-IN') t.classList.add('active');
+        });
+
+        renderPlanContent(dailyPlanData, 'en-IN');
+        renderSeverityBar(dailyPlanData.severity_counts);
+      } catch (err) {
+        area.innerHTML = `<div style="color: var(--accent-red); text-align: center; padding: 32px;">
+          ❌ ${err.message}<br/>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">Make sure AI analysis has been run for at least one node.</span>
+        </div>`;
+      } finally {
+        btn.textContent = '📋 Generate Daily Plan';
+        btn.classList.remove('loading');
+      }
+    });
+
+    function renderSeverityBar(counts) {
+      const bar = document.getElementById('planSeverityBar');
+      if (!counts) { bar.style.display = 'none'; return; }
+      bar.style.display = 'flex';
+      let html = '';
+      if (counts.critical) html += `<span class="plan-severity-chip critical">🚨 ${counts.critical} Critical</span>`;
+      if (counts.warning) html += `<span class="plan-severity-chip warning">⚠️ ${counts.warning} Warning</span>`;
+      if (counts.healthy) html += `<span class="plan-severity-chip healthy">✅ ${counts.healthy} Healthy</span>`;
+      if (counts.info) html += `<span class="plan-severity-chip info">ℹ️ ${counts.info} Info</span>`;
+      bar.innerHTML = html;
+    }
+
+    function renderPlanContent(text, langCode) {
+      const area = document.getElementById('planContentArea');
+      const nativeName = langNames[langCode] || langCode;
+      
+      let html = `
+        <div class="plan-card" id="planCard">
+          <div class="plan-card-header">
+            <span class="plan-lang-badge">🌐 ${nativeName}</span>
+            <button class="plan-speak-btn" id="planSpeakBtn" onclick="speakPlanText()">
+              🔊 Listen
+            </button>
+          </div>
+          <div id="planTextBody" style="font-size: 1.05rem; line-height: 1.7; color: var(--text-primary); padding: 12px 6px;">
+            ${escapeHtml(text)}
+          </div>
+        </div>
+      `;
+      area.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>');
+    }
+
+    // Language tab switching
+    document.querySelectorAll('#langTabs .lang-tab').forEach(tab => {
+      tab.addEventListener('click', async () => {
+        if (!dailyPlanData) {
+          showToast('Generate a daily plan first!', 'error');
+          return;
+        }
+
+        const lang = tab.dataset.lang;
+        currentPlanLang = lang;
+
+        // Update active tab
+        document.querySelectorAll('#langTabs .lang-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Check cache
+        if (translationCache[lang]) {
+          renderPlanContent(translationCache[lang].plan_text, lang);
+          return;
+        }
+
+        // Translate via frontend->backend proxy
+        const area = document.getElementById('planContentArea');
+        area.innerHTML = `<div class="plan-loading"><div class="spinner"></div>Translating to ${langNames[lang] || lang} via Sarvam AI...</div>`;
+
+        try {
+          const resp = await fetch(`${API_BASE}/api/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: dailyPlanData.plan_text,
+              source_language_code: 'en-IN',
+              target_language_code: lang
+            })
+          });
+
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${resp.status}`);
+          }
+
+          const dataRes = await resp.json();
+          const translatedText = dataRes.translated_text;
+          
+          // Reconstruct translated data object
+          const translatedData = JSON.parse(JSON.stringify(dailyPlanData)); 
+          translatedData.plan_text = translatedText;
+
+          translationCache[lang] = translatedData;
+          renderPlanContent(translatedText, lang);
+        } catch (err) {
+          renderPlanContent(translationCache['en-IN'].plan_text, 'en-IN');
+          showToast(`Translation failed: ${err.message}`, 'error');
+          // Revert tab
+          document.querySelectorAll('#langTabs .lang-tab').forEach(t => {
+            t.classList.remove('active');
+            if (t.dataset.lang === 'en-IN') t.classList.add('active');
+          });
+          currentPlanLang = 'en-IN';
+        }
+      });
+    });
+
+    // TTS via backend proxy
+    async function speakPlanText() {
+      const btn = document.getElementById('planSpeakBtn');
+      const data = translationCache[currentPlanLang] || dailyPlanData;
+      if (!data) return;
+      
+      let textToSpeak = data.plan_text;
+
+      btn.classList.add('playing');
+      btn.innerHTML = '🔊 Speaking...';
+      btn.disabled = true;
+
+      try {
+        // Take first 500 chars for TTS (API limit)
+        const snippet = textToSpeak.substring(0, 500);
+        const resp = await fetch(`${API_BASE}/api/tts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: snippet,
+            target_language_code: currentPlanLang
+          })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${resp.status}`);
+        }
+
+        const audioData = await resp.json();
+        if (audioData.audio_base64) {
+          await playBase64Audio(audioData.audio_base64);
+        }
+      } catch (err) {
+        console.warn('TTS failed, trying browser fallback:', err.message);
+        showToast('Voice API failed — using browser fallback', 'error');
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(textToSpeak.substring(0, 300));
+          u.lang = currentPlanLang.replace('-IN', '');
+          window.speechSynthesis.speak(u);
+        }
+      } finally {
+        btn.classList.remove('playing');
+        btn.innerHTML = '🔊 Listen';
+        btn.disabled = false;
+      }
+    }
 
     /* ===== INIT ===== */
     fetchNodes();
