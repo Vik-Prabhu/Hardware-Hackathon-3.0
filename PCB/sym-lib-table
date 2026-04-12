@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "pcbcupid")(type "KiCad")(uri "D:/Robomanipal/HH 2.0 (PCBcupid x Lion Circuits)/footprints/pcbcupid-hardware-libraries/pcbcupid_symbol/pcbcupid.kicad_sym")(options "")(descr ""))
+)

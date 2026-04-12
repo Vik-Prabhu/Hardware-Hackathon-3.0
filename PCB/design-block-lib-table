@@ -1,0 +1,4 @@
+(design_block_lib_table
+  (version 7)
+  (lib (name "pcbcupid_3dmodels")(type "KiCad")(uri "${KIPRJMOD}/GreenNode(PCB)/pcbcupid_3dmodels")(options "")(descr ""))
+)

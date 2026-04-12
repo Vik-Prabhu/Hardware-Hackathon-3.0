@@ -11,6 +11,7 @@ export default {
       {
         text: 'Introduction',
         items: [
+          { text: 'About', link: '/introduction/about' },
           { text: 'Market Research', link: '/research/market-research' },
           { text: 'Case Study', link: '/research/case-study' },
           { text: 'Team', link: '/introduction/team' }

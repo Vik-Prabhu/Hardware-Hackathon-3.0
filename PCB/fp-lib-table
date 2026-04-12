@@ -1,0 +1,5 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "pcbcupid_footprint")(type "KiCad")(uri "D:/Robomanipal/HH 2.0 (PCBcupid x Lion Circuits)/footprints/pcbcupid-hardware-libraries/pcbcupid_footprint/pcbcupid_footprint.pretty")(options "")(descr ""))
+  (lib (name "mouse-bite.pretty-main")(type "KiCad")(uri "D:/Robomanipal/HH 2.0 (PCBcupid x Lion Circuits)/3.0/GreenNode(PCB)/mouse-bite.pretty-main/mouse-bite.pretty-main")(options "")(descr ""))
+)
