@@ -2880,7 +2880,7 @@
           if (t.dataset.lang === 'en-IN') t.classList.add('active');
         });
 
-        renderPlanContent(dailyPlanData, 'en-IN');
+        renderPlanContent(dailyPlanData.plan_text, 'en-IN');
         renderSeverityBar(dailyPlanData.severity_counts);
       } catch (err) {
         area.innerHTML = `<div style="color: var(--accent-red); text-align: center; padding: 32px;">

@@ -25,7 +25,7 @@ import re
 from database import get_connection, init_db
 
 load_dotenv()
-AI_SERVER_URL = os.getenv("AI_SERVER_URL", "http://192.168.236.84:8000")
+AI_SERVER_URL = os.getenv("AI_SERVER_URL", "http://192.168.134.84:8000")
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "")
 
 PHOTOS_DIR = Path(__file__).parent / "photos"

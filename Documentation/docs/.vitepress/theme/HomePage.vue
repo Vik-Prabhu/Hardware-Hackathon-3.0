@@ -38,7 +38,7 @@
       <div class="gn-hero-content">
         <div class="gn-badge">
           <span class="gn-badge-dot"></span>
-          Team Robomanipal — Hardware Hackathon 3.0
+          Team Robomanipal — Hardware Hackathon 3.0 - Team 6
         </div>
 
         <h1 class="gn-hero-title">
@@ -46,7 +46,7 @@
           <span class="gn-t2">NODE</span>
         </h1>
 
-        <p class="gn-hero-sub">AI-Optimized Growth Monitoring for Your Bonsai Collection</p>
+        <p class="gn-hero-sub">AI-Optimized Growth Monitoring for Plants</p>
 
         <div class="gn-hero-btns">
           <a href="/dashboard/index.html" class="gn-btn-primary" @click.prevent="goToDashboard">
@@ -54,12 +54,6 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>
           <a href="/research/market-research" class="gn-btn-secondary">Explore Docs</a>
-        </div>
-
-        <div class="gn-stats">
-          <div class="gn-stat"><span class="gn-stat-ico">🌡️</span><div class="gn-stat-info"><span class="gn-stat-val">±0.5°C</span><span class="gn-stat-lbl">Accuracy</span></div></div>
-          <div class="gn-stat"><span class="gn-stat-ico">📡</span><div class="gn-stat-info"><span class="gn-stat-val">WiFi</span><span class="gn-stat-lbl">Connected</span></div></div>
-          <div class="gn-stat"><span class="gn-stat-ico">🤖</span><div class="gn-stat-info"><span class="gn-stat-val">AI</span><span class="gn-stat-lbl">Advisory</span></div></div>
         </div>
       </div>
 
@@ -98,7 +92,7 @@
         </div>
         <div class="gn-pipe-wrap">
           <div class="gn-pstep" v-for="(s, i) in pipeline" :key="i">
-            <div class="gn-pcircle">{{ s.icon }}</div>
+
             <div class="gn-pbody"><h4>{{ s.title }}</h4><p>{{ s.desc }}</p></div>
           </div>
         </div>
@@ -772,35 +766,7 @@ html.gn-home-active .Layout {
 
 .gn-pstep:last-child { padding-bottom: 0; }
 
-.gn-pstep:not(:last-child)::before {
-  content: '';
-  position: absolute;
-  left: 27px;
-  top: 56px;
-  width: 2px;
-  height: calc(100% - 56px);
-  background: linear-gradient(180deg, var(--em), rgba(16,185,129,0.08));
-}
 
-.gn-pcircle {
-  width: 54px;
-  height: 54px;
-  min-width: 54px;
-  border-radius: 50%;
-  background: rgba(16,185,129,0.08);
-  border: 2px solid rgba(16,185,129,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  transition: all .3s ease;
-}
-
-.gn-pstep:hover .gn-pcircle {
-  background: rgba(16,185,129,0.18);
-  border-color: var(--em);
-  transform: scale(1.08);
-}
 
 .gn-pbody h4 {
   font-family: 'Space Grotesk', sans-serif;
